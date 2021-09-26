@@ -10,7 +10,7 @@ import * as middleware from "./middleware";
 import axios from "axios";
 import { assertType } from "typescript-is";
 
-import type { CryptoResponse } from "./types/types";
+import type { CryptoPrice, CryptoResponse } from "./types/types";
 
 // populated by ConfigWebpackPlugin
 declare const CONFIG: ConfigType;
@@ -30,6 +30,15 @@ const middlewares = [middleware.handleCors
 ];
 
 applyMiddleware(middlewares, router);
+
+const extractCryptoPrice = (fatObject: CryptoPrice): CryptoPrice => {
+  return {
+    FROMSYMBOL: fatObject.FROMSYMBOL,
+    PRICE: fatObject.PRICE,
+    LASTUPDATE: fatObject.LASTUPDATE,
+    CHANGEPCTDAY: fatObject.CHANGEPCTDAY
+  }
+}
 
 const getExternalPrice = (): Promise<any> => {
   const baseUrl = CONFIG.priceAPI.url;
@@ -53,8 +62,24 @@ const getExternalPrice = (): Promise<any> => {
       else {
         try {
           const respValidated = assertType<CryptoResponse>(resp.data["RAW"]);
-          // TODO: filter out the extra stuff
-          return respValidated;
+          const respFiltered = {
+            ADA: {
+              USD: extractCryptoPrice(respValidated.ADA.USD),
+              JPY: extractCryptoPrice(respValidated.ADA.JPY),
+              EUR: extractCryptoPrice(respValidated.ADA.EUR)
+            },
+            SOL: {
+              USD: extractCryptoPrice(respValidated.SOL.USD),
+              JPY: extractCryptoPrice(respValidated.SOL.JPY),
+              EUR: extractCryptoPrice(respValidated.SOL.EUR)
+            },
+            ETH: {
+              USD: extractCryptoPrice(respValidated.ETH.USD),
+              JPY: extractCryptoPrice(respValidated.ETH.JPY),
+              EUR: extractCryptoPrice(respValidated.ETH.EUR)
+            }
+          }
+          return respFiltered;
         } catch (e) {
           throw "Error while parsing response " + e;
         }
