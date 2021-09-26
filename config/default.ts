@@ -5,6 +5,6 @@ export default ({
   },
   APIGenerated: {
     refreshRate: 60000, // per min
-    port: 8082 
+    port: 8090 
   }
 } as ConfigType);

@@ -17,7 +17,7 @@
   "license": "MIT",
   "husky": {
     "hooks": {
-      "pre-push": "npm run typecheck && npm run eslint"
+      "pre-push": "npm run typecheck"
     }
   },
   "dependencies": {
