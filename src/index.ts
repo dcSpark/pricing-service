@@ -98,7 +98,7 @@ const updatePrice = async (): Promise<void> => {
 
 const getPriceEndpoint = async (req: Request, res: Response) => {
   if (Object.keys(currentPrice).length === 0) {   
-    await updatePrice(getPriceMultiFullURL());
+    await updatePrice();
   }
   res.send(currentPrice)
   return;
