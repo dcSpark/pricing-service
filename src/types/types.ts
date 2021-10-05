@@ -2,7 +2,7 @@ export type CryptoPrice = {
     FROMSYMBOL: string,
     PRICE: number,
     LASTUPDATE: number,
-    CHANGEPCTDAY: number,
+    CHANGEPCT24HOUR: number,
 }
 
 export type CryptoResponse = {

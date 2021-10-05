@@ -36,7 +36,7 @@ const extractCryptoPrice = (fatObject: CryptoPrice): CryptoPrice => {
     FROMSYMBOL: fatObject.FROMSYMBOL,
     PRICE: fatObject.PRICE,
     LASTUPDATE: fatObject.LASTUPDATE,
-    CHANGEPCTDAY: fatObject.CHANGEPCTDAY
+    CHANGEPCT24HOUR: fatObject.CHANGEPCT24HOUR
   }
 }
 
