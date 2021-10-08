@@ -1,7 +1,7 @@
 export default ({ 
   priceAPI: {
-    url: "https://min-api.cryptocompare.com",
-    key: ""
+    url: process.env.CRYPTOCOMPARE_URL || "https://min-api.cryptocompare.com",
+    key: process.env.CRYPTOCOMPARE_KEY || ""
   },
   APIGenerated: {
     refreshRate: 60000, // per min
