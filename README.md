@@ -1,16 +1,14 @@
-# milkomeda-validator
+# Cardano-Pricing Service
 
 ## Background
 
 
 ## Purpose of this project
-
+The purpose of this micro service is to cache price from cryptocompare that can be queried by the cardano-backend service.
 
 # Requirements
+You will need the API key.  You will need to ask for it.
 
-To run this, you will need to run the following
-
-1) cardano-db-sync
 
 ## Building
 
@@ -28,6 +26,10 @@ npm run dev
 ```
 
 *Never put production credentials into repository!*
+
+## Containers
+This will build to a container with the docker file.  The container is using the PM2 runtime.  You will need to pass ENV variables to the container to register with PM2 logging.
+
 
 ## Tests
 
