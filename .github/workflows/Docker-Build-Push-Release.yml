@@ -6,7 +6,7 @@ name: Build-Push-Docker-onRelease
 on:
   release:
     # Only use the types keyword to narrow down the activity types that will trigger your workflow.
-    types: [published, created, edited]
+    types: [published, edited]
 # on:
 #   push:
 #     tags:
