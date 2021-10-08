@@ -5,6 +5,8 @@ name: Docker-Build-Push-Latest
 # Controls when the workflow will run
 on:
   push:
+    paths-ignore:
+      - '.github/**'
     branches:
       - 'main'
 
