@@ -4,6 +4,7 @@
   "description": "TODO",
   "main": "src/index.ts",
   "scripts": {
+    "build": "tsc --build tsconfig.json",
     "postinstall": "npm run typecheck",
     "typecheck": "tsc --project tsconfig.typecheck.json",
     "start": "pm2 start pm2.yaml",
