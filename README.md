@@ -19,14 +19,17 @@ You will need the API key.  You will need to ask for it.
 Development build (with hot reloading):
 ```bash
 # install the right version of Node
-nvm use
 nvm install
+nvm use
 
 # install dependencies
 npm install
 
+# build
+npm run build
+
 # run the server
-npm run dev
+npm run dev:run
 ```
 
 *Never put production credentials into repository!*
