@@ -5,20 +5,12 @@ export type CryptoPrice = {
     CHANGEPCT24HOUR: number,
 }
 
-export type CryptoResponse = {
-    ADA: {
-        USD: CryptoPrice,
-        JPY: CryptoPrice,
-        EUR: CryptoPrice
-    },
-    SOL: {
-        USD: CryptoPrice,
-        JPY: CryptoPrice,
-        EUR: CryptoPrice
-    },
-    ETH: {
-        USD: CryptoPrice,
-        JPY: CryptoPrice,
-        EUR: CryptoPrice
-    },
-}
+export const supportedCurrenciesFrom = ['ADA', 'SOL', 'ETH'] as const;
+export type SupportedCurrencyFrom = typeof supportedCurrenciesFrom[number];
+
+export const supportedCurrenciesTo = ['USD', 'JPY', 'EUR'] as const;
+export type SupportedCurrencyTo = typeof supportedCurrenciesTo[number];
+
+export type CryptoResponseEntry = Record<SupportedCurrencyTo, CryptoPrice>;
+
+export type CryptoResponse = Record<SupportedCurrencyFrom, CryptoResponseEntry>
