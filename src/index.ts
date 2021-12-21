@@ -1,22 +1,25 @@
 import http from "http";
 import express from "express";
 import { Request, Response } from "express";
-
-// eslint-disable-next-line
-const semverCompare = require("semver-compare");
-
 import { applyMiddleware, applyRoutes, Route } from "./utils";
 import * as middleware from "./middleware";
 import axios from "axios";
 import { assertType } from "typescript-is";
 
-import { CryptoPrice, CryptoResponse, supportedCurrenciesFrom, supportedCurrenciesTo } from "./types/types";
+import {
+  CryptoPrice,
+  CryptoResponse,
+  supportedCurrenciesFrom,
+  supportedCurrenciesTo,
+  SupportedCurrencyFrom,
+  SupportedCurrencyTo
+} from "./types/types";
 
 // populated by ConfigWebpackPlugin
 declare const CONFIG: ConfigType;
 
 // Most important variable for this server
-let currentPrice: CryptoResponse | {} = {};
+let currentPrice: CryptoResponse | undefined;
 
 /**
  * HTTP API interface
@@ -89,16 +92,38 @@ const updatePrice = async (): Promise<void> => {
 }
 
 const getPriceEndpoint = async (req: Request, res: Response) => {
-  if (Object.keys(currentPrice).length === 0) {   
+  if (req.body == null) {
+    res.status(400).send("Did not specify \"body\"!");
+    return;
+  }
+  // also accept unsupported currencies, just return null
+  const currFrom = assertType<string[]>(req.body.from);
+  const currTo = assertType<SupportedCurrencyTo>(req.body.to);
+  if (currFrom.length === 0) {
+    res.status(400).send("Did not specify \"from\" currencies!");
+    return;
+  }
+  if (currTo.length === 0) {
+    res.status(400).send("Did not specify \"to\" currency!");
+    return;
+  }
+  // fetch price if necessary
+  if (currentPrice == null) {
     await updatePrice();
   }
-  res.send(currentPrice)
-  return;
+
+  const result = Object.fromEntries(
+    currFrom.map(from => [
+      from,
+      currentPrice?.[from as SupportedCurrencyFrom]?.[currTo],
+    ])
+  )
+  res.send(result)
 }
 
 const routes: Route[] = [
   { path: "/v1/getPrice"
-  , method: "get"
+  , method: "post"
   , handler: getPriceEndpoint
   },
 ];
