@@ -5,21 +5,43 @@ import { applyMiddleware, applyRoutes, Route } from "./utils";
 import * as middleware from "./middleware";
 import axios from "axios";
 import { assertType } from "typescript-is";
+import moment from "moment";
 
 import {
   CryptoPrice,
-  CryptoResponse,
+  CurrentPrice,
+  priceHistoryBaseCurrencyTo,
+  priceHistoryUnquerriedCurrenciesTo,
+  PriceHistory,
+  priceHistoryKeys,
   supportedCurrenciesFrom,
   supportedCurrenciesTo,
   SupportedCurrencyFrom,
-  SupportedCurrencyTo
+  SupportedCurrencyTo,
+  PriceHistoryCryptoCompareEntry,
+  PriceHistoryEntry
 } from "./types/types";
 
 // populated by ConfigWebpackPlugin
 declare const CONFIG: ConfigType;
 
-// Most important variable for this server
-let currentPrice: CryptoResponse | undefined;
+const dailyHistoryLimit = 2000; // defined by CryptoCompare
+const hourlyHistoryLimit = moment.duration(1, 'week').asHours();
+
+const initEmptyHistory = ():PriceHistory => Object.create(
+  Object.fromEntries(priceHistoryKeys.map(from => [
+    from,
+    Object.fromEntries(supportedCurrenciesTo.map(to => [
+      to,
+      []
+    ]))
+  ]))
+);
+
+// Server cache
+let currentPrice: CurrentPrice | undefined;
+const historyDailyAll: PriceHistory = initEmptyHistory()
+const historyHourlyWeek: PriceHistory = initEmptyHistory(); 
 
 /**
  * HTTP API interface
@@ -28,7 +50,7 @@ let currentPrice: CryptoResponse | undefined;
 const router = express();
 
 const middlewares = [middleware.handleCors
-  , middleware.handleBodyRequestParsing 
+  , middleware.handleBodyRequestParsing
   , middleware.handleCompression
 ];
 
@@ -66,7 +88,7 @@ const getExternalPrice = (): Promise<any> => {
       }
       else {
         try {
-          const respValidated = assertType<CryptoResponse>(resp.data["RAW"]);
+          const respValidated = assertType<CurrentPrice>(resp.data["RAW"]);
           const respFiltered = Object.fromEntries(supportedCurrenciesFrom.map(from => [
             from,
             Object.fromEntries(supportedCurrenciesTo.map(to => [
@@ -91,6 +113,60 @@ const updatePrice = async (): Promise<void> => {
   }
 }
 
+const extractPriceHistoryEntry = (fatObject: PriceHistoryCryptoCompareEntry): PriceHistoryEntry => ({
+  time: fatObject.time,
+  price: fatObject.open,
+})
+
+const calculateMissingHistoryEntry = (
+  from_base: PriceHistoryEntry,
+  to_base: PriceHistoryEntry): PriceHistoryEntry => {
+    if (from_base.time !== to_base.time) {
+      throw new Error("Timestamp mismatch!")
+    }
+    return {
+      time: from_base.time,
+      // Not too complicated, but just in case here is the reasoning:
+      // 1f = f_b * 1b;   1t = t_b * 1b;   1f = f_t * 1t
+      // We want f_t:
+      // f_t = 1f/1t = (f_b * 1b)/(t_b * 1b) = f_b/t_b
+      // careful if (t_b === 0), but that means the market crashed, so we can crash too
+      price: from_base.price / to_base.price
+    }
+};
+
+const updateHistory = async (cache: PriceHistory, endpoint: string, limit: number) => {
+  const baseUrl = CONFIG.priceAPI.url;
+  
+  for (const from of priceHistoryKeys) {
+    cache[from][priceHistoryBaseCurrencyTo] = await axios.get(baseUrl + endpoint, {
+      params: {
+        fsym: from,
+        tsym: priceHistoryBaseCurrencyTo,
+        limit: limit,
+        api_key: CONFIG.priceAPI.key,
+      },
+    }).then(resp => {
+      if (resp.status === 200) {
+        const data = resp.data.Data.Data;
+        const entry = assertType<Array<PriceHistoryCryptoCompareEntry>>(data)
+        return entry.map(extractPriceHistoryEntry);
+      }
+      throw resp.data.Message;
+    });
+  };
+
+  // calculate missing values
+  for (const from of priceHistoryKeys) {
+    for (const to of priceHistoryUnquerriedCurrenciesTo) {
+      cache[from][to] = cache[from][priceHistoryBaseCurrencyTo].map((from_base, i) => {
+        const to_base = cache[to][priceHistoryBaseCurrencyTo][i];
+        return calculateMissingHistoryEntry(from_base, to_base);
+      })
+    }
+  }
+}
+
 const getPriceEndpoint = async (req: Request, res: Response) => {
   if (req.body == null) {
     res.status(400).send("Did not specify \"body\"!");
@@ -103,7 +179,7 @@ const getPriceEndpoint = async (req: Request, res: Response) => {
     res.status(400).send("Did not specify \"from\" currencies!");
     return;
   }
-  if (currTo.length === 0) {
+  if (currTo == null) {
     res.status(400).send("Did not specify \"to\" currency!");
     return;
   }
@@ -115,7 +191,11 @@ const getPriceEndpoint = async (req: Request, res: Response) => {
   const result = Object.fromEntries(
     currFrom.map(from => [
       from,
-      currentPrice?.[from as SupportedCurrencyFrom]?.[currTo],
+      {
+        ...currentPrice?.[from as SupportedCurrencyFrom]?.[currTo],
+        historyHourly: historyHourlyWeek[from as SupportedCurrencyFrom]?.[currTo],
+        historyDaily: historyDailyAll[from as SupportedCurrencyFrom]?.[currTo],
+      }
     ])
   )
   res.send(result)
@@ -147,9 +227,26 @@ console.log("Starting interval");
 
 new Promise(async resolve => {
   await updatePrice();
-
   setInterval(async () => {
     await updatePrice();
   }, CONFIG.APIGenerated.refreshRate)
-})
 
+  await updateHistory(historyDailyAll, '/data/v2/histoday', dailyHistoryLimit);
+  setTimeout(() => {
+    setInterval(async () => {
+      updateHistory(historyDailyAll, '/data/v2/histoday', dailyHistoryLimit);
+    }, moment.duration(1, 'day').asMilliseconds())
+  },
+  // CryptoCompare updates history at gmt midnight. Add 5 mins, just in case.
+  moment().utc().endOf('day').add(5, 'minutes').diff(moment().utc(), 'milliseconds'));
+
+  await updateHistory(historyHourlyWeek, '/data/v2/histohour', hourlyHistoryLimit);
+  setTimeout(() => {
+    setInterval(async () => {
+      updateHistory(historyHourlyWeek, '/data/v2/histohour', hourlyHistoryLimit);
+    }, moment.duration(1, 'hour').asMilliseconds())
+  },
+  // CryptoCompare *probably* updates history at the end of hour. Docs don't mention it,
+  // but that's where the timestamps are. Add 1 min, just in case.
+  moment().endOf('hour').add(1, 'minute').diff(moment(), 'milliseconds'));
+});
