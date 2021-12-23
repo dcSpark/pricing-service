@@ -4,7 +4,7 @@ export default ({
     key: process.env.CRYPTOCOMPARE_KEY || ""
   },
   APIGenerated: {
-    refreshRate: 60000, // per min
+    refreshInterval: 60000, // refreshes once per min
     port: 8090 
   }
 } as ConfigType);
