@@ -41,6 +41,17 @@ export const applyRoutes = (routes: Route[], router: Router) => {
   }
 };
 
+export function exponentialBackoff(query: () => Promise<any>, baseInterval: number) {
+  const call = (iteration: number) => {
+    query()
+      .catch(error => {
+        console.log(error);
+        setTimeout(() => call(iteration+1), baseInterval**iteration);
+      })
+  }
+  call(1);
+}
+
 export function assertNever(x: never): never {
   throw new Error ("this should never happen" + x);
 }

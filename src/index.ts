@@ -1,7 +1,7 @@
 import http from "http";
 import express from "express";
 import { Request, Response } from "express";
-import { applyMiddleware, applyRoutes, Route } from "./utils";
+import { applyMiddleware, applyRoutes, exponentialBackoff, Route } from "./utils";
 import * as middleware from "./middleware";
 import axios from "axios";
 import { assertType } from "typescript-is";
@@ -138,7 +138,6 @@ const calculateMissingHistoryEntry = (
 const updateHistory = async (cache: PriceHistory, endpoint: string, limit: number) => {
   const baseUrl = CONFIG.priceAPI.url;
   const newCache = initEmptyHistory();
-  
   for (const from of priceHistoryKeys) {
     newCache[from][priceHistoryBaseCurrencyTo] = await axios.get(baseUrl + endpoint, {
       params: {
@@ -172,6 +171,15 @@ const updateHistory = async (cache: PriceHistory, endpoint: string, limit: numbe
     cache[from] = newCache[from];
   }
 }
+
+const updateDaily = () => exponentialBackoff(
+  () => updateHistory(historyDailyAll, '/data/v2/histoday', dailyHistoryLimit),
+  CONFIG.APIGenerated.refreshInterval
+);
+const updateHourly = () => exponentialBackoff(
+  () => updateHistory(historyHourlyWeek, '/data/v2/histohour', hourlyHistoryLimit),
+  CONFIG.APIGenerated.refreshInterval
+);
 
 const getPriceEndpoint = async (req: Request, res: Response) => {
   if (req.body == null) {
@@ -235,21 +243,21 @@ new Promise(async resolve => {
   await updatePrice();
   setInterval(async () => {
     await updatePrice();
-  }, CONFIG.APIGenerated.refreshRate)
+  }, CONFIG.APIGenerated.refreshInterval)
 
-  await updateHistory(historyDailyAll, '/data/v2/histoday', dailyHistoryLimit);
+  updateDaily();
   setTimeout(() => {
     setInterval(async () => {
-      updateHistory(historyDailyAll, '/data/v2/histoday', dailyHistoryLimit);
+      updateDaily();
     }, moment.duration(1, 'day').asMilliseconds())
   },
   // CryptoCompare updates history at gmt midnight. Add 5 mins, just in case.
   moment().utc().endOf('day').add(5, 'minutes').diff(moment().utc(), 'milliseconds'));
 
-  await updateHistory(historyHourlyWeek, '/data/v2/histohour', hourlyHistoryLimit);
+  updateHourly();
   setTimeout(() => {
     setInterval(async () => {
-      updateHistory(historyHourlyWeek, '/data/v2/histohour', hourlyHistoryLimit);
+      updateHourly();
     }, moment.duration(1, 'hour').asMilliseconds())
   },
   // CryptoCompare *probably* updates history at the end of hour. Docs don't mention it,

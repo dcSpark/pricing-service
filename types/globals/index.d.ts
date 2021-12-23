@@ -4,7 +4,7 @@ interface ConfigType {
     key: string,
   },
   APIGenerated: {
-    refreshRate: number,
+    refreshInterval: number,
     port: number
   },
 }
