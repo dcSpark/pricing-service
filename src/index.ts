@@ -137,9 +137,10 @@ const calculateMissingHistoryEntry = (
 
 const updateHistory = async (cache: PriceHistory, endpoint: string, limit: number) => {
   const baseUrl = CONFIG.priceAPI.url;
+  const newCache = initEmptyHistory();
   
   for (const from of priceHistoryKeys) {
-    cache[from][priceHistoryBaseCurrencyTo] = await axios.get(baseUrl + endpoint, {
+    newCache[from][priceHistoryBaseCurrencyTo] = await axios.get(baseUrl + endpoint, {
       params: {
         fsym: from,
         tsym: priceHistoryBaseCurrencyTo,
@@ -159,11 +160,16 @@ const updateHistory = async (cache: PriceHistory, endpoint: string, limit: numbe
   // calculate missing values
   for (const from of priceHistoryKeys) {
     for (const to of priceHistoryUnquerriedCurrenciesTo) {
-      cache[from][to] = cache[from][priceHistoryBaseCurrencyTo].map((from_base, i) => {
-        const to_base = cache[to][priceHistoryBaseCurrencyTo][i];
+      newCache[from][to] = newCache[from][priceHistoryBaseCurrencyTo].map((from_base, i) => {
+        const to_base = newCache[to][priceHistoryBaseCurrencyTo][i];
         return calculateMissingHistoryEntry(from_base, to_base);
       })
     }
+  }
+
+  // replace cache
+  for (const from of priceHistoryKeys) {
+    cache[from] = newCache[from];
   }
 }
 
