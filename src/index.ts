@@ -8,7 +8,6 @@ import { assertType } from "typescript-is";
 import moment from "moment";
 
 import {
-  CryptoPrice,
   CurrentPrice,
   priceHistoryBaseCurrencyTo,
   priceHistoryNotQueriedCurrenciesTo,
@@ -19,12 +18,16 @@ import {
   SupportedCurrencyFrom,
   SupportedCurrencyTo,
   PriceHistoryCryptoCompareEntry,
-  PriceHistoryEntry
+  PriceHistoryEntry,
+  CryptoCompareCurrentPriceEntry,
+  CurrentPriceEntry
 } from "./types/types";
+import BigNumber from "bignumber.js";
 
 // populated by ConfigWebpackPlugin
 declare const CONFIG: ConfigType;
 
+const safeNumberPrecision = 15;
 const dailyHistoryLimit = 2000; // defined by CryptoCompare
 const hourlyHistoryLimit = moment.duration(1, 'week').asHours();
 
@@ -56,12 +59,13 @@ const middlewares = [middleware.handleCors
 
 applyMiddleware(middlewares, router);
 
-const extractCryptoPrice = (fatObject: CryptoPrice): CryptoPrice => {
+const extractCryptoPrice = (fatObject: CryptoCompareCurrentPriceEntry): CurrentPriceEntry => {
   return {
-    FROMSYMBOL: fatObject.FROMSYMBOL,
-    PRICE: fatObject.PRICE,
-    LASTUPDATE: fatObject.LASTUPDATE,
-    CHANGEPCT24HOUR: fatObject.CHANGEPCT24HOUR
+    // We use number.toString() as input to BigNumber, because BigNumber will throw if the number is not safe
+    // (has >15 significant digits). We assume these are safe, because they come directly from CryptoCompare 
+    price: new BigNumber(fatObject.PRICE.toString()),
+    lastUpdate: fatObject.LASTUPDATE,
+    changePercent24h: new BigNumber(fatObject.CHANGEPCT24HOUR.toString())
   }
 }
 
@@ -88,7 +92,10 @@ const getExternalPrice = (): Promise<any> => {
       }
       else {
         try {
-          const respValidated = assertType<CurrentPrice>(resp.data["RAW"]);
+          const respValidated = assertType<
+            Record<SupportedCurrencyFrom, 
+              Record<SupportedCurrencyTo, CryptoCompareCurrentPriceEntry
+            >>>(resp.data["RAW"]);
           const respFiltered = Object.fromEntries(supportedCurrenciesFrom.map(from => [
             from,
             Object.fromEntries(supportedCurrenciesTo.map(to => [
@@ -115,7 +122,9 @@ const updatePrice = async (): Promise<void> => {
 
 const extractPriceHistoryEntry = (fatObject: PriceHistoryCryptoCompareEntry): PriceHistoryEntry => ({
   time: fatObject.time,
-  price: fatObject.open,
+  // We use number.toString() as input to BigNumber, because BigNumber will throw if the number is not safe
+  // (has >15 significant digits). We assume these are safe, because they come directly from CryptoCompare 
+  price: new BigNumber(fatObject.open.toString()),
 })
 
 const calculateMissingHistoryEntry = (
@@ -131,7 +140,7 @@ const calculateMissingHistoryEntry = (
       // We want f_t:
       // f_t = 1f/1t = (f_b * 1b)/(t_b * 1b) = f_b/t_b
       // careful if (t_b === 0), but that means the market crashed, so we can crash too
-      price: from_base.price / to_base.price
+      price: from_base.price.div(to_base.price)
     }
 };
 
@@ -181,6 +190,11 @@ const updateHourly = () => exponentialBackoff(
   CONFIG.APIGenerated.refreshInterval
 );
 
+const historyEntryToResult: (entry: PriceHistoryEntry) => ({time: number, price: string}) = ({time, price}) => ({
+  time,
+  price: price.toPrecision(safeNumberPrecision)
+})
+
 const getPriceEndpoint = async (req: Request, res: Response) => {
   if (req.body == null) {
     res.status(400).send("Did not specify \"body\"!");
@@ -203,14 +217,18 @@ const getPriceEndpoint = async (req: Request, res: Response) => {
   }
 
   const result = Object.fromEntries(
-    currFrom.map(from => [
+    currFrom.map(from => {
+      const entry = currentPrice?.[from as SupportedCurrencyFrom]?.[currTo];
+      return [
       from,
       {
-        ...currentPrice?.[from as SupportedCurrencyFrom]?.[currTo],
-        historyHourly: historyHourlyWeek[from as SupportedCurrencyFrom]?.[currTo],
-        historyDaily: historyDailyAll[from as SupportedCurrencyFrom]?.[currTo],
+        lastUpdate: entry?.lastUpdate,
+        changePercent24h: entry?.changePercent24h.toPrecision(safeNumberPrecision),
+        price: entry?.price.toPrecision(safeNumberPrecision),
+        historyHourly: historyHourlyWeek[from as SupportedCurrencyFrom]?.[currTo].map(historyEntryToResult),
+        historyDaily: historyDailyAll[from as SupportedCurrencyFrom]?.[currTo].map(historyEntryToResult),
       }
-    ])
+    ]})
   )
   res.send(result)
 }
