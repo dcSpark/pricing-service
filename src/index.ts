@@ -11,7 +11,7 @@ import {
   CryptoPrice,
   CurrentPrice,
   priceHistoryBaseCurrencyTo,
-  priceHistoryUnquerriedCurrenciesTo,
+  priceHistoryNotQueriedCurrenciesTo,
   PriceHistory,
   priceHistoryKeys,
   supportedCurrenciesFrom,
@@ -158,7 +158,7 @@ const updateHistory = async (cache: PriceHistory, endpoint: string, limit: numbe
 
   // calculate missing values
   for (const from of priceHistoryKeys) {
-    for (const to of priceHistoryUnquerriedCurrenciesTo) {
+    for (const to of priceHistoryNotQueriedCurrenciesTo) {
       newCache[from][to] = newCache[from][priceHistoryBaseCurrencyTo].map((from_base, i) => {
         const to_base = newCache[to][priceHistoryBaseCurrencyTo][i];
         return calculateMissingHistoryEntry(from_base, to_base);
