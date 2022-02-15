@@ -6,7 +6,14 @@ export type CryptoCompareCurrentPriceEntry = {
   CHANGEPCT24HOUR: number,
 }
 
-export type CurrentPriceEntry = {
+// TODO: remove after Flint release
+type LegacyCurrentPriceEntry = {
+  PRICE: number,
+  LASTUPDATE: number,
+  CHANGEPCT24HOUR: number,
+}
+
+export type CurrentPriceEntry = LegacyCurrentPriceEntry & {
     price: BigNumber,
     lastUpdate: number,
     changePercent24h: BigNumber,
