@@ -4,6 +4,7 @@ interface ConfigType {
     key: string,
   },
   APIGenerated: {
+    refreshBackoffCap: number,
     refreshInterval: number,
     port: number
   },

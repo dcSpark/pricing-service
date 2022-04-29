@@ -1,4 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
+
+// populated by ConfigWebpackPlugin
+declare const CONFIG: ConfigType;
+
 export const contentTypeHeaders = { headers: {"Content-Type": "application/json"}};
 
 export const errMsgs = { noValue: "no value" };
@@ -42,11 +46,15 @@ export const applyRoutes = (routes: Route[], router: Router) => {
 };
 
 export function exponentialBackoff(query: () => Promise<any>, baseInterval: number) {
+  // limitation of 32bit signed int
+  const backoffHardCap = 2**31-1;
+  const backoffCap = Math.min(backoffHardCap, CONFIG.APIGenerated.refreshBackoffCap);
+
   const call = (iteration: number) => {
     query()
       .catch(error => {
         console.log(error);
-        setTimeout(() => call(iteration+1), baseInterval**iteration);
+        setTimeout(() => call(iteration+1), Math.min(baseInterval**iteration, backoffCap));
       })
   }
   call(1);
