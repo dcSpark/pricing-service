@@ -66,10 +66,6 @@ const extractCryptoPrice = (fatObject: CryptoCompareCurrentPriceEntry): CurrentP
     price: new BigNumber(fatObject.PRICE.toString()),
     lastUpdate: fatObject.LASTUPDATE,
     changePercent24h: new BigNumber(fatObject.CHANGEPCT24HOUR.toString()),
-    // TODO remove after flint release
-    PRICE: fatObject.PRICE,
-    LASTUPDATE: fatObject.LASTUPDATE,
-    CHANGEPCT24HOUR: fatObject.CHANGEPCT24HOUR,
   }
 }
 
@@ -231,11 +227,7 @@ const getPriceEndpoint = async (req: Request, res: Response) => {
         price: entry?.price.toPrecision(safeNumberPrecision),
         historyHourly: historyHourlyWeek[from as SupportedCurrencyFrom]?.[currTo].map(historyEntryToResult),
         historyDaily: historyDailyAll[from as SupportedCurrencyFrom]?.[currTo].map(historyEntryToResult),
-        // TODO remove after Flint release    
-        PRICE: entry?.PRICE,
-        LASTUPDATE: entry?.LASTUPDATE,
-        CHANGEPCT24HOUR: entry?.CHANGEPCT24HOUR,
-      }
+        }
     ]})
   )
   res.send(result)
