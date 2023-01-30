@@ -1,6 +1,4 @@
 import typescriptIsTransformer from "typescript-is/lib/transform-inline/transformer";
-import config from "config";
-import webpack from "webpack";
 import path from "path";
 import WebpackShellPluginNext from "webpack-shell-plugin-next";
 
@@ -21,7 +19,6 @@ module.exports = {
     extensions: [".ts", ".js"],
   },
   plugins: [
-    new webpack.DefinePlugin({ CONFIG: JSON.stringify(config) }),
     new WebpackShellPluginNext({
       onBuildEnd:{
         scripts: ["npm run dev:run"],

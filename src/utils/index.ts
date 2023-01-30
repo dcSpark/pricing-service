@@ -1,7 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-
-// populated by ConfigWebpackPlugin
-declare const CONFIG: ConfigType;
+import CONFIG from '../../config/default';
 
 export const contentTypeHeaders = { headers: {"Content-Type": "application/json"}};
 
