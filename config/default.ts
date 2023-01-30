@@ -1,3 +1,7 @@
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env" });
+
 export default {
   priceAPI: {
     url: process.env.CRYPTOCOMPARE_URL ?? "https://min-api.cryptocompare.com",

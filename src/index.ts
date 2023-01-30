@@ -23,9 +23,7 @@ import {
 import BigNumber from "bignumber.js";
 // do not use directly, use `axios`
 import axiosRaw, { AxiosRequestConfig } from "axios";
-
-// populated by ConfigWebpackPlugin
-declare const CONFIG: ConfigType;
+import CONFIG from '../config/default';
 
 /**
  * Wrapper for axios that logs results. Extend as needed.
