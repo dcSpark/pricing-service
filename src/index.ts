@@ -255,11 +255,17 @@ router.use(middleware.errorHandler);
 
 const server = http.createServer(router);
 const port: number = CONFIG.APIGenerated.port;
+const refreshInterval = CONFIG.APIGenerated.refreshInterval;
+const refreshBackoffCap = CONFIG.APIGenerated.refreshBackoffCap;
+const baseUrl = CONFIG.priceAPI.url;
 
 server.listen(port, () =>
   console.log(`listening on ${port}...`)
 );
 
+console.log(`baseUrl: ${baseUrl}`)
+console.log(`refreshInterval: ${refreshInterval}`)
+console.log(`refreshBackoffCap: ${refreshBackoffCap}`)
 console.log("Starting interval");
 
 /**
