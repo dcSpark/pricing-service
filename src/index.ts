@@ -3,10 +3,8 @@ import express from "express";
 import { Request, Response } from "express";
 import { applyMiddleware, applyRoutes, exponentialBackoff, Route } from "./utils";
 import * as middleware from "./middleware";
-import axios from "axios";
 import { assertType } from "typescript-is";
 import moment from "moment";
-
 import {
   CurrentPrice,
   priceHistoryBaseCurrencyTo,
@@ -23,9 +21,22 @@ import {
   CurrentPriceEntry
 } from "./types/types";
 import BigNumber from "bignumber.js";
+// do not use directly, use `axios`
+import axiosRaw, { AxiosRequestConfig } from "axios";
 
 // populated by ConfigWebpackPlugin
 declare const CONFIG: ConfigType;
+
+/**
+ * Wrapper for axios that logs results. Extend as needed.
+ */
+class axios {
+  static async get(url: string, config?: AxiosRequestConfig) {
+    const result = await axiosRaw.get(url, config)
+    console.log(`GET(${result.status}): ${url}`)
+    return result
+  }
+}
 
 const safeNumberPrecision = 15;
 const dailyHistoryLimit = 2000; // defined by CryptoCompare
