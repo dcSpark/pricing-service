@@ -9,11 +9,3 @@ interface ConfigType {
     port: number
   },
 }
-
-declare global {
-    namespace NodeJS {
-      interface Global {
-        CONFIG: ConfigType;
-      }
-    }
-  }

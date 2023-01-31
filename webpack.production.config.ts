@@ -1,8 +1,5 @@
 import typescriptIsTransformer from "typescript-is/lib/transform-inline/transformer";
-import config from "config";
-import webpack from "webpack";
 import path from "path";
-import WebpackShellPluginNext from "webpack-shell-plugin-next";
 
 const {
   NODE_ENV = "production",
@@ -20,9 +17,6 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".js"],
   },
-  plugins: [
-    new webpack.DefinePlugin({ CONFIG: JSON.stringify(config) })
-  ],
   module: {
       rules: [
         {
