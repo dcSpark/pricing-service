@@ -1,0 +1,22 @@
+{
+  "preset": "ts-jest",
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  },
+  "globals": {
+    "ts-jest": {
+      "compiler": "ttypescript",
+      "tsconfig": "tsconfig.jest.json",
+      "astTransformers": {
+        "before": ["ts-nameof"]
+      }
+    }
+  },
+  "testRegex": "/tests/.*\\.test\\.ts$",
+  "testEnvironment": "node",
+  "testEnvironmentOptions": {
+    "scriptPath": "./src/index.ts",
+    "modules": true
+  },
+  "collectCoverageFrom": ["src/**/*.{ts,tsx}"]
+}

@@ -12,7 +12,30 @@ export type CurrentPriceEntry = {
     changePercent24h: BigNumber,
 }
 
-export const supportedCurrenciesFrom = ['ADA', 'SOL', 'ETH'] as const;
+export interface NFTPrice {
+  floor_price: BigNumber;
+  floor_price_marketplace: string;
+  asset_holders: number;
+  asset_minted: number;
+  total_volume: BigNumber;
+  attribution: string;
+  policy: string;
+  highest_sale: {
+    price: BigNumber;
+    asset_name: string;
+    name: string;
+  }
+}
+
+export interface NFTRequest {
+  policy: string;
+}
+
+export type CachedNFTMapping = {
+  [key: string]: string;
+};
+
+export const supportedCurrenciesFrom = ['ADA', 'ETH'] as const;
 export type SupportedCurrencyFrom = typeof supportedCurrenciesFrom[number];
 
 export const supportedCurrenciesTo = ['USD', 'JPY', 'EUR'] as const;
