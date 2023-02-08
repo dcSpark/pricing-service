@@ -1,0 +1,18 @@
+{
+  "attribution": "NOTICE: © 2022 OpenCNFT. Just include the source of the data (opencnft.io) ;)",
+  "policy": "b863bc7369f46136ac1048adb2fa7dae3af944c3bbb2be2f216a8d4f",
+  "thumbnail": "ipfs://ipfs/Qmb43sxTNDVze7VAodazKoPDaB6vjMKs8sEqGuexiAu5TS",
+  "total_volume": 1186259990000,
+  "first_sale": 1.7976931348623157e308,
+  "total_tx": 16,
+  "total_assets_sold": 16,
+  "asset_minted": 100,
+  "asset_holders": 84,
+  "highest_sale": {
+    "asset_name": "BerryCardinal",
+    "name": "b863bc7369f46136ac1048adb2fa7dae3af944c3bbb2be2f216a8d4f.BerryCardinal",
+    "price": 115000000000
+  },
+  "floor_price": 64000000000,
+  "floor_price_marketplace": "jpg.store"
+}

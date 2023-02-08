@@ -2,7 +2,7 @@
 import axiosRaw from "axios";
 import { axios } from "./utils/index";
 import { assertType } from "typescript-is";
-import { CNFT, NFTCollection } from "./types/types";
+import { CachedCollection, CNFT, NFTCollection } from "./types/types";
 
 export const parseCNFTPredatorResponse = (data: any): NFTCollection[] => {
   try {
@@ -58,3 +58,31 @@ export const getCNFT = async (
     return resp.data;
   });
 };
+
+
+
+export const getCollectionsUsingOpenCNFTInterval = async (
+    currentCNFTsPrice: { [key: string]: CachedCollection },
+    start: number,
+    limit = 20
+  ): Promise<{ [key: string]: CachedCollection }> => {
+    let result: { [key: string]: CachedCollection } = {};
+    // get the keys of the currentCNFTsPrice
+    const keys = Object.keys(currentCNFTsPrice);
+    // get the keys of the currentCNFTsPrice that are in the range of start and start + limit
+    const keysInRange = keys.slice(start, start + limit);
+    for (const keys of keysInRange) {
+      try {
+        const collection = await getCNFT(keys);
+        if (!collection.policy) continue;
+        result[collection.policy] = {
+          ...currentCNFTsPrice[collection.policy],
+          data: collection,
+          lastUpdatedTimestamp: Date.now(),
+        };
+      } catch (e) {
+        console.error("Error updating price for openCNFT: ", e);
+      }
+    }
+    return result;
+  };

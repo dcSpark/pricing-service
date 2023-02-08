@@ -32,7 +32,7 @@ import {
   safeNumberPrecision,
 } from "./cryptocompare";
 import { axios } from "./utils/index";
-import { getCNFT, getCollections } from "./opencnft";
+import { getCNFT, getCollections, getCollectionsUsingOpenCNFTInterval } from "./opencnft";
 
 const dailyHistoryLimit = 2000; // defined by CryptoCompare
 const hourlyHistoryLimit = moment.duration(1, "week").asHours();
@@ -50,8 +50,8 @@ const initEmptyHistory = (): PriceHistory =>
 // Server cache
 let currentPrice: CurrentPrice | undefined;
 let currentCNFTsPrice: { [key: string]: CachedCollection } = {};
-let CNFTPolicyNotFoundList: string[] = [];
 let lastOpenCNFTRequested: number = 0; // used for pagination and avoid the rate limiter
+let CNFTPolicyNotFoundList: string[] = [];
 const historyDailyAll: PriceHistory = initEmptyHistory();
 const historyHourlyWeek: PriceHistory = initEmptyHistory();
 
@@ -101,27 +101,14 @@ const updateCollections = async (): Promise<void> => {
   }
 };
 
-const updateCollectionsUsingOpenCNFTInterval = async (
+
+
+export const updateCollectionsUsingOpenCNFTInterval = async (
   start: number,
   limit = 20
 ): Promise<void> => {
-  // get the keys of the currentCNFTsPrice
-  const keys = Object.keys(currentCNFTsPrice);
-  // get the keys of the currentCNFTsPrice that are in the range of start and start + limit
-  const keysInRange = keys.slice(start, start + limit);
-  for (const keys of keysInRange) {
-    try {
-      const collection = await getCNFT(keys);
-      if (!collection.policy) return;
-      currentCNFTsPrice[collection.policy] = {
-        ...currentCNFTsPrice[collection.policy],
-        data: collection,
-        lastUpdatedTimestamp: Date.now(),
-      };
-    } catch (e) {
-      console.error("Error updating price for openCNFT: ", e);
-    }
-  }
+  const result = await getCollectionsUsingOpenCNFTInterval(currentCNFTsPrice, start, limit);
+  currentCNFTsPrice = { ...currentCNFTsPrice, ...result };
 };
 
 const updateHistory = async (
@@ -328,7 +315,11 @@ new Promise(async (resolve) => {
       lastOpenCNFTRequested,
       CONFIG.APIGenerated.openCNFTRatePerRequest
     ).then(() => {
-      lastOpenCNFTRequested += CONFIG.APIGenerated.openCNFTRatePerRequest;
+      if (lastOpenCNFTRequested >= Object.keys(currentCNFTsPrice).length) {
+        lastOpenCNFTRequested = 0;
+      } else {
+        lastOpenCNFTRequested += CONFIG.APIGenerated.openCNFTRatePerRequest;
+      }
     });
   }, CONFIG.APIGenerated.openCNFTRefreshRate);
 

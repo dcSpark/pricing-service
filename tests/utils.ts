@@ -7,3 +7,8 @@ export const nockEndpoint = (filePath: string, url: string): void => {
   const json = JSON.parse(file);
   nock(urlObj.origin).get(urlObj.pathname).query(true).reply(200, json);
 };
+
+export const jsonFile = (filePath: string): object => {
+  const file = readFileSync(filePath, "utf-8");
+  return JSON.parse(file);
+};

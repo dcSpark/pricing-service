@@ -1,0 +1,16 @@
+{
+  "b97859c71e4e73af3ae83c30a3172c434c43041f6ff19c297fb76094": {
+    "id": 63760,
+    "name": "EarthNode",
+    "policies": "b97859c71e4e73af3ae83c30a3172c434c43041f6ff19c297fb76094",
+    "data": null,
+    "lastUpdatedTimestamp": 1675824945086
+  },
+  "b863bc7369f46136ac1048adb2fa7dae3af944c3bbb2be2f216a8d4f": {
+    "id": 27835,
+    "name": "Berry",
+    "policies": "b863bc7369f46136ac1048adb2fa7dae3af944c3bbb2be2f216a8d4f",
+    "data": null,
+    "lastUpdatedTimestamp": 1675824945086
+  }
+}
