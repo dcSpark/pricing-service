@@ -16,17 +16,15 @@ beforeAll(() => {
 });
 
 describe("Cryptocompare API", () => {
-  // TODO: Uncomment this
-  // test("Cryptocompare API is reachable and parses correctly", async () => {
-  //   const getPriceMultiFull = generatePriceHistoryURL();
-  //   nock.enableNetConnect();
-  //   try {
-  //     const prices = await getExternalPrice(false);
-  //     expect(prices).toBeInstanceOf(Object);
-  //   } catch (e) {
-  //     throw e;
-  //   }
-  // });
+  test("Cryptocompare API is reachable and parses correctly", async () => {
+    nock.enableNetConnect();
+    try {
+      const prices = await getExternalPrice(false);
+      expect(prices).toBeInstanceOf(Object);
+    } catch (e) {
+      throw e;
+    }
+  });
 
   test("External Prices are processed correctly", async () => {
     const getPriceMultiFull = generatePriceHistoryURL();

@@ -59,7 +59,7 @@ describe("CNFT APIs", () => {
     }
   });
 
-  test("OpenCNFT Parsing - No Data", async () => {
+  test("OpenCNFT Parsing", async () => {
     let currentCNFTsPrice: { [key: string]: CachedCollection } = jsonFile(
       "./tests/mocks/cnft-api-input.json"
     ) as any;
@@ -74,7 +74,6 @@ describe("CNFT APIs", () => {
         0,
         2
       );
-      console.log(currentCNFTsPrice);
       expect(
         currentCNFTsPrice[
           "b97859c71e4e73af3ae83c30a3172c434c43041f6ff19c297fb76094"
@@ -145,4 +144,18 @@ describe("CNFT APIs", () => {
       throw e;
     }
   });
+
+  // TODO: fix the nock error for this test
+//   test("OpenCNFT is reachable and parses correctly", async () => {
+//     const katzPolicyId =
+//       "b863bc7369f46136ac1048adb2fa7dae3af944c3bbb2be2f216a8d4f";
+//     try {
+//       nock.enableNetConnect();
+//       const cnft = await getCNFT(katzPolicyId, false);
+//       console.log("cnft", cnft);
+//       expect(cnft).toBeInstanceOf(Object);
+//     } catch (e) {
+//       throw e;
+//     }
+//   });
 });
