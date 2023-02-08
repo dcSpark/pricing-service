@@ -1,5 +1,5 @@
 import nock from "nock";
-import { generatePriceHistoryURL, getExternalPrice } from "../src/api";
+import { generatePriceHistoryURL, getExternalPrice } from "../src/cryptocompare";
 import { readFileSync } from "fs";
 import BigNumber from "bignumber.js";
 
@@ -15,13 +15,25 @@ beforeAll(() => {
   nock.disableNetConnect();
 });
 
-describe("Bridge Healthiness", () => {
-  test("A1 and C1 are healthy", async () => {
+describe("Cryptocompare API", () => {
+  // TODO: Uncomment this
+  // test("Cryptocompare API is reachable and parses correctly", async () => {
+  //   const getPriceMultiFull = generatePriceHistoryURL();
+  //   nock.enableNetConnect();
+  //   try {
+  //     const prices = await getExternalPrice(false);
+  //     expect(prices).toBeInstanceOf(Object);
+  //   } catch (e) {
+  //     throw e;
+  //   }
+  // });
+
+  test("External Prices are processed correctly", async () => {
     const getPriceMultiFull = generatePriceHistoryURL();
     nockEndpoint("./tests/mocks/externalPrice.json", getPriceMultiFull);
 
     try {
-      const prices = await getExternalPrice();
+      const prices = await getExternalPrice(false);
       expect(prices).toStrictEqual({
         ADA: {
           EUR: {

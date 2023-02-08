@@ -23,7 +23,8 @@ import {
   NFTRequest,
 } from "./types/types";
 import CONFIG from "../config/default";
-import { axios, calculateMissingHistoryEntry, extractPriceHistoryEntry, getExternalPrice, historyEntryToResult, safeNumberPrecision } from "./api";
+import { calculateMissingHistoryEntry, extractPriceHistoryEntry, getExternalPrice, historyEntryToResult, safeNumberPrecision } from "./cryptocompare";
+import { axios } from "./utils/index";
 
 const dailyHistoryLimit = 2000; // defined by CryptoCompare
 const hourlyHistoryLimit = moment.duration(1, "week").asHours();

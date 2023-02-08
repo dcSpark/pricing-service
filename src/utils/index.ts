@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
 import CONFIG from '../../config/default';
+import axiosRaw, { AxiosRequestConfig } from "axios"
 
 export const contentTypeHeaders = { headers: {"Content-Type": "application/json"}};
-
 export const errMsgs = { noValue: "no value" };
 
 type Wrapper = ((router: Router) => void);
@@ -72,5 +72,16 @@ export function scanInteger(x: any, strict=false): Nullable<number> {
       return /^[+-]?\d+$/.test( strict ? x : x.trim() ) ? Number(x) : null;
     default:
       return null;
+  }
+}
+
+/**
+ * Wrapper for axios that logs results. Extend as needed.
+ */
+export class axios {
+  static async get(url: string, config?: AxiosRequestConfig) {
+    const result = await axiosRaw.get(url, config);
+    console.log(`GET(${result.status}): ${url}`);
+    return result;
   }
 }

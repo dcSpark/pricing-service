@@ -3,20 +3,10 @@ import { CryptoCompareCurrentPriceEntry, CurrentPriceEntry, PriceHistoryCryptoCo
 import CONFIG from "../config/default";
 // do not use directly, use `axios`
 import axiosRaw, { AxiosRequestConfig } from "axios"
+import { axios } from "./utils/index";
 import { assertType } from "typescript-is";
 
 export const safeNumberPrecision = 15;
-
-/**
- * Wrapper for axios that logs results. Extend as needed.
- */
-export class axios {
-    static async get(url: string, config?: AxiosRequestConfig) {
-      const result = await axiosRaw.get(url, config);
-      console.log(`GET(${result.status}): ${url}`);
-      return result;
-    }
-  }
 
 export const extractCryptoPrice = (
   fatObject: CryptoCompareCurrentPriceEntry
@@ -40,9 +30,35 @@ export const generatePriceHistoryURL = (): string => {
   return getPriceMultiFull;
 };
 
-export const getExternalPrice = (): Promise<any> => {
+export const parseCryptocompareResponse = (resp: any): any => {
+  try {
+    const respValidated = assertType<
+      Record<
+        SupportedCurrencyFrom,
+        Record<SupportedCurrencyTo, CryptoCompareCurrentPriceEntry>
+      >
+    >(resp.data["RAW"]);
+    const respFiltered = Object.fromEntries(
+      supportedCurrenciesFrom.map((from) => [
+        from,
+        Object.fromEntries(
+          supportedCurrenciesTo.map((to) => [
+            to,
+            extractCryptoPrice(respValidated[from][to]),
+          ])
+        ),
+      ])
+    );
+    return respFiltered;
+  } catch (e) {
+    throw "Error while parsing response " + e;
+  }
+};
+
+export const getExternalPrice = (logging = true): Promise<any> => {
   const getPriceMultiFull = generatePriceHistoryURL();
-  return axios.get(getPriceMultiFull).then((resp) => {
+  const fetcher = logging ? axios.get : axiosRaw.get;
+  return fetcher(getPriceMultiFull).then((resp) => {
     if (resp.status === 404) {
       throw "Problem with the external API server. Not found.";
     } else if (resp.status === 500) {
@@ -53,30 +69,8 @@ export const getExternalPrice = (): Promise<any> => {
       console.log("resp.data: ", resp.data);
       throw "Problem with the external API server. RAW response missing.";
     } else {
-      // console.log("RAW response:", resp.data["RAW"]);
       try {
-        const respValidated = assertType<
-          Record<
-            SupportedCurrencyFrom,
-            Record<SupportedCurrencyTo, CryptoCompareCurrentPriceEntry>
-          >
-        >(resp.data["RAW"]);
-        // const respValidated = resp.data["RAW"];
-        // console.log("respValidated: ", respValidated);
-        // console.log("type of respValidated: ", typeof respValidated);
-        // console.log("CAD PRICE response:", respValidated["ADA"]["CAD"]["PRICE"]);
-        const respFiltered = Object.fromEntries(
-          supportedCurrenciesFrom.map((from) => [
-            from,
-            Object.fromEntries(
-              supportedCurrenciesTo.map((to) => [
-                to,
-                extractCryptoPrice(respValidated[from][to]),
-              ])
-            ),
-          ])
-        );
-        return respFiltered;
+        return parseCryptocompareResponse(resp);
       } catch (e) {
         throw "Error while parsing response " + e;
       }

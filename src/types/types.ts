@@ -52,6 +52,31 @@ export type PriceHistoryEntry = {
   price: BigNumber; // opening price is the price at timestamp
 }
 
+export interface CNFT {
+  attribution: string;
+  policy: string;
+  thumbnail: string;
+  total_volume: number;
+  first_sale: number;
+  total_tx: number;
+  total_assets_sold: number;
+  asset_minted: number;
+  asset_holders: number;
+  highest_sale: {
+    price: number;
+    asset_name: string;
+    name: string;
+  };
+  floor_price: number;
+  floor_price_marketplace: string;
+}
+
+export interface NFTCollection {
+  id: number;
+  name: string | null;
+  policies: string | null; // no idea how this can be null but it can
+}
+
 // To reduce the number of queries, we query "from" all currencies "to" one base currency,
 // and fill in the remaining values ourselves. 
 export const priceHistoryBaseCurrencyTo = 'USD' as const;
