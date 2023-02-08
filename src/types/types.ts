@@ -27,10 +27,6 @@ export interface NFTPrice {
   }
 }
 
-export interface NFTRequest {
-  policy: string;
-}
-
 export type CachedNFTMapping = {
   [key: string]: string;
 };
@@ -75,6 +71,11 @@ export interface NFTCollection {
   id: number;
   name: string | null;
   policies: string | null; // no idea how this can be null but it can
+}
+
+export interface CachedCollection extends NFTCollection {
+  data: CNFT | null;
+  lastUpdatedTimestamp: number;
 }
 
 // To reduce the number of queries, we query "from" all currencies "to" one base currency,

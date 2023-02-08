@@ -41,6 +41,7 @@ export const applyRoutes = (routes: Route[], router: Router) => {
     // (router as any)[method](`/api${path}`, handler);
     (router as any)[method](path, handler);
   }
+  console.log("path: ", routes.map(r => r.path));
 };
 
 export function exponentialBackoff(query: () => Promise<any>, baseInterval: number) {

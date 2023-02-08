@@ -20,11 +20,19 @@ import {
   SupportedCurrencyFrom,
   SupportedCurrencyTo,
   PriceHistoryCryptoCompareEntry,
-  NFTRequest,
+  CachedCollection,
+  CNFT,
 } from "./types/types";
 import CONFIG from "../config/default";
-import { calculateMissingHistoryEntry, extractPriceHistoryEntry, getExternalPrice, historyEntryToResult, safeNumberPrecision } from "./cryptocompare";
+import {
+  calculateMissingHistoryEntry,
+  extractPriceHistoryEntry,
+  getExternalPrice,
+  historyEntryToResult,
+  safeNumberPrecision,
+} from "./cryptocompare";
 import { axios } from "./utils/index";
+import { getCNFT, getCollections } from "./opencnft";
 
 const dailyHistoryLimit = 2000; // defined by CryptoCompare
 const hourlyHistoryLimit = moment.duration(1, "week").asHours();
@@ -41,6 +49,9 @@ const initEmptyHistory = (): PriceHistory =>
 
 // Server cache
 let currentPrice: CurrentPrice | undefined;
+let currentCNFTsPrice: { [key: string]: CachedCollection } = {};
+let CNFTPolicyNotFoundList: string[] = [];
+let lastOpenCNFTRequested: number = 0; // used for pagination and avoid the rate limiter
 const historyDailyAll: PriceHistory = initEmptyHistory();
 const historyHourlyWeek: PriceHistory = initEmptyHistory();
 
@@ -64,6 +75,52 @@ const updatePrice = async (): Promise<void> => {
     currentPrice = price;
   } catch (e) {
     console.error("Error updating price: ", e);
+  }
+};
+
+const updateCollections = async (): Promise<void> => {
+  try {
+    const collections = await getCollections();
+    collections.forEach((collection) => {
+      if (!collection.policies) return;
+      // if data already exist in the cache, we don't update it
+      const data =
+        currentCNFTsPrice[collection.policies] &&
+        currentCNFTsPrice[collection.policies].data != null
+          ? currentCNFTsPrice[collection.policies].data
+          : null;
+
+      currentCNFTsPrice[collection.policies] = {
+        ...collection,
+        data,
+        lastUpdatedTimestamp: Date.now(),
+      };
+    });
+  } catch (e) {
+    console.error("Error updating price: ", e);
+  }
+};
+
+const updateCollectionsUsingOpenCNFTInterval = async (
+  start: number,
+  limit = 20
+): Promise<void> => {
+  // get the keys of the currentCNFTsPrice
+  const keys = Object.keys(currentCNFTsPrice);
+  // get the keys of the currentCNFTsPrice that are in the range of start and start + limit
+  const keysInRange = keys.slice(start, start + limit);
+  for (const keys of keysInRange) {
+    try {
+      const collection = await getCNFT(keys);
+      if (!collection.policy) return;
+      currentCNFTsPrice[collection.policy] = {
+        ...currentCNFTsPrice[collection.policy],
+        data: collection,
+        lastUpdatedTimestamp: Date.now(),
+      };
+    } catch (e) {
+      console.error("Error updating price for openCNFT: ", e);
+    }
   }
 };
 
@@ -99,7 +156,7 @@ const updateHistory = async (
     for (const to of priceHistoryNotQueriedCurrenciesTo) {
       newCache[from][to] = newCache[from][priceHistoryBaseCurrencyTo].map(
         (from_base, i) => {
-          const to_base = newCache[to][priceHistoryBaseCurrencyTo][i];
+          const to_base: any = newCache[to][priceHistoryBaseCurrencyTo][i];
           return calculateMissingHistoryEntry(from_base, to_base);
         }
       );
@@ -129,18 +186,49 @@ const updateHourly = () =>
     CONFIG.APIGenerated.refreshInterval
   );
 
-
 const getNFTsPriceEndpoint = async (req: Request, res: Response) => {
   if (req.body == null) {
     res.status(400).send('Did not specify "body"!');
     return;
   }
-  const nfts = assertType<NFTRequest[]>(req.body);
+  const nfts = assertType<string[]>(req.body);
   if (nfts.length === 0) {
     res.status(400).send('Did not specify "nfts"!');
     return;
   }
-  console.log("Not implemented yet!");
+
+  if (nfts.length > 100) {
+    res.status(400).send({
+      status: "Too many nfts. Maximum 100.",
+      data: [],
+    });
+    return;
+  }
+
+  if (Object.keys(currentCNFTsPrice).length == 0) {
+    res.status(200).send({
+      status: "CNFT Price API not available",
+      data: [],
+    });
+    return;
+  }
+
+  const result = Object.keys(currentCNFTsPrice).map((key) => {
+    const cachedNft = currentCNFTsPrice[key];
+    if (cachedNft.policies != null && nfts.includes(cachedNft.policies)) {
+      return cachedNft;
+    } else {
+      return null;
+    }
+  });
+
+  // remove null values
+  const filteredResult = result.filter((nft) => nft != null);
+
+  res.status(200).send({
+    status: "ok",
+    data: filteredResult,
+  });
 };
 
 const getPriceEndpoint = async (req: Request, res: Response) => {
@@ -198,6 +286,10 @@ applyRoutes(routes, router);
 router.use(middleware.logErrors);
 router.use(middleware.errorHandler);
 
+router.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 const server = http.createServer(router);
 const port: number = CONFIG.APIGenerated.port;
 const refreshInterval = CONFIG.APIGenerated.refreshInterval;
@@ -217,11 +309,29 @@ console.log("Starting interval");
 
 new Promise(async (resolve) => {
   await updatePrice();
+  await updateCollections();
+
   setInterval(async () => {
     await updatePrice();
   }, CONFIG.APIGenerated.refreshInterval);
 
+  setInterval(async () => {
+    await updateCollections();
+  }, CONFIG.APIGenerated.collectionUpdateInterval);
+
   updateDaily();
+
+  // Update X OpenCNFTs every 1 minute
+  setInterval(async () => {
+    if (currentCNFTsPrice == null) return;
+    return updateCollectionsUsingOpenCNFTInterval(
+      lastOpenCNFTRequested,
+      CONFIG.APIGenerated.openCNFTRatePerRequest
+    ).then(() => {
+      lastOpenCNFTRequested += CONFIG.APIGenerated.openCNFTRatePerRequest;
+    });
+  }, CONFIG.APIGenerated.openCNFTRefreshRate);
+
   setTimeout(
     () => {
       setInterval(async () => {
