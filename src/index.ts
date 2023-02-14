@@ -22,6 +22,7 @@ import {
   PriceHistoryCryptoCompareEntry,
   CachedCollection,
   CNFT,
+  ADAPool,
 } from "./types/types";
 import CONFIG from "../config/default";
 import {
@@ -37,6 +38,7 @@ import {
   getCollections,
   getCollectionsUsingOpenCNFTInterval,
 } from "./opencnft";
+import { getAdaPools } from "./adapools";
 
 const dailyHistoryLimit = 2000; // defined by CryptoCompare
 const hourlyHistoryLimit = moment.duration(1, "week").asHours();
@@ -53,9 +55,9 @@ const initEmptyHistory = (): PriceHistory =>
 
 // Server cache
 let currentPrice: CurrentPrice | undefined;
+let currentAdaPools: { [key: string]: ADAPool } = {};
 let currentCNFTsPrice: { [key: string]: CachedCollection } = {};
 let lastOpenCNFTRequested: number = 0; // used for pagination and avoid the rate limiter
-let CNFTPolicyNotFoundList: string[] = [];
 const historyDailyAll: PriceHistory = initEmptyHistory();
 const historyHourlyWeek: PriceHistory = initEmptyHistory();
 
@@ -81,6 +83,30 @@ const updatePrice = async (): Promise<void> => {
     console.error("Error updating price: ", e);
   }
 };
+
+// const updateAdaPools = async (): Promise<void> => {
+//   try {
+//     const updatedAdaPools = await getAdaPools();
+//     // currentAdaPools = adaPools;
+//     updatedAdaPools.forEach((adaPool) => {
+//       if (!collection.policies) return;
+//       // if data already exist in the cache, we don't update it
+//       const data =
+//         currentCNFTsPrice[collection.policies] &&
+//         currentCNFTsPrice[collection.policies].data != null
+//           ? currentCNFTsPrice[collection.policies].data
+//           : null;
+
+//       currentCNFTsPrice[collection.policies] = {
+//         ...collection,
+//         data,
+//         lastUpdatedTimestamp: Date.now(),
+//       };
+//     });
+//   } catch (e) {
+//     console.error("Error updating adapools: ", e);
+//   }
+// };
 
 const updateCollections = async (): Promise<void> => {
   try {

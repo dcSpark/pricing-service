@@ -3,6 +3,10 @@ interface ConfigType {
     url: string,
     key: string,
   },
+  adaPoolsAPI: {
+    url: string,
+    key: string,
+  },
   APIGenerated: {
     refreshBackoffCap: number,
     refreshInterval: number,
