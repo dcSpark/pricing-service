@@ -32,7 +32,11 @@ import {
   safeNumberPrecision,
 } from "./cryptocompare";
 import { axios } from "./utils/index";
-import { getCNFT, getCollections, getCollectionsUsingOpenCNFTInterval } from "./opencnft";
+import {
+  getCNFT,
+  getCollections,
+  getCollectionsUsingOpenCNFTInterval,
+} from "./opencnft";
 
 const dailyHistoryLimit = 2000; // defined by CryptoCompare
 const hourlyHistoryLimit = moment.duration(1, "week").asHours();
@@ -101,13 +105,15 @@ const updateCollections = async (): Promise<void> => {
   }
 };
 
-
-
 export const updateCollectionsUsingOpenCNFTInterval = async (
   start: number,
   limit = 20
 ): Promise<void> => {
-  const result = await getCollectionsUsingOpenCNFTInterval(currentCNFTsPrice, start, limit);
+  const result = await getCollectionsUsingOpenCNFTInterval(
+    currentCNFTsPrice,
+    start,
+    limit
+  );
   currentCNFTsPrice = { ...currentCNFTsPrice, ...result };
 };
 
@@ -272,10 +278,6 @@ const routes: Route[] = [
 applyRoutes(routes, router);
 router.use(middleware.logErrors);
 router.use(middleware.errorHandler);
-
-router.get("/", (req, res) => {
-  res.send("Hello World!");
-});
 
 const server = http.createServer(router);
 const port: number = CONFIG.APIGenerated.port;

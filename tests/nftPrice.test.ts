@@ -146,16 +146,16 @@ describe("CNFT APIs", () => {
   });
 
   // TODO: fix the nock error for this test
-//   test("OpenCNFT is reachable and parses correctly", async () => {
-//     const katzPolicyId =
-//       "b863bc7369f46136ac1048adb2fa7dae3af944c3bbb2be2f216a8d4f";
-//     try {
-//       nock.enableNetConnect();
-//       const cnft = await getCNFT(katzPolicyId, false);
-//       console.log("cnft", cnft);
-//       expect(cnft).toBeInstanceOf(Object);
-//     } catch (e) {
-//       throw e;
-//     }
-//   });
+  // test("OpenCNFT is reachable and parses correctly", async () => {
+  //   const katzPolicyId =
+  //     "b863bc7369f46136ac1048adb2fa7dae3af944c3bbb2be2f216a8d4f";
+  //   try {
+  //     nock.enableNetConnect();
+  //     const cnft = await getCNFT(katzPolicyId, false);
+  //     console.log("cnft", cnft);
+  //     expect(cnft).toBeInstanceOf(Object);
+  //   } catch (e) {
+  //     throw e;
+  //   }
+  // });
 });

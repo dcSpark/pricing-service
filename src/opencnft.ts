@@ -33,7 +33,7 @@ export const getCollections = async (
   });
 };
 
-export const parseCNFTResponse = (resp: any): CNFT => {
+export const parseCNFTResponse = (resp: unknown): CNFT => {
   try {
     const respValidated = assertType<CNFT>(resp);
     return respValidated;
