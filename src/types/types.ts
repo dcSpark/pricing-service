@@ -12,7 +12,26 @@ export type CurrentPriceEntry = {
     changePercent24h: BigNumber,
 }
 
-export const supportedCurrenciesFrom = ['ADA', 'SOL', 'ETH'] as const;
+export interface NFTPrice {
+  floor_price: BigNumber;
+  floor_price_marketplace: string;
+  asset_holders: number;
+  asset_minted: number;
+  total_volume: BigNumber;
+  attribution: string;
+  policy: string;
+  highest_sale: {
+    price: BigNumber;
+    asset_name: string;
+    name: string;
+  }
+}
+
+export type CachedNFTMapping = {
+  [key: string]: string;
+};
+
+export const supportedCurrenciesFrom = ['ADA', 'ETH'] as const;
 export type SupportedCurrencyFrom = typeof supportedCurrenciesFrom[number];
 
 export const supportedCurrenciesTo = ['USD', 'JPY', 'EUR'] as const;
@@ -27,6 +46,36 @@ export type PriceHistoryCryptoCompareEntry = {
 export type PriceHistoryEntry = {
   time: PriceHistoryCryptoCompareEntry['time'];
   price: BigNumber; // opening price is the price at timestamp
+}
+
+export interface CNFT {
+  attribution: string;
+  policy: string;
+  thumbnail: string;
+  total_volume: number;
+  first_sale: number;
+  total_tx: number;
+  total_assets_sold: number;
+  asset_minted: number;
+  asset_holders: number;
+  highest_sale: {
+    price: number;
+    asset_name: string;
+    name: string;
+  };
+  floor_price: number;
+  floor_price_marketplace: string;
+}
+
+export interface NFTCollection {
+  id: number;
+  name: string | null;
+  policies: string | null; // no idea how this can be null but it can
+}
+
+export interface CachedCollection extends NFTCollection {
+  data: CNFT | null;
+  lastUpdatedTimestamp: number;
 }
 
 // To reduce the number of queries, we query "from" all currencies "to" one base currency,

@@ -1,0 +1,18 @@
+{
+  "attribution": "NOTICE: © 2022 OpenCNFT. Just include the source of the data (opencnft.io) ;)",
+  "policy": "b97859c71e4e73af3ae83c30a3172c434c43041f6ff19c297fb76094",
+  "thumbnail": "ipfs://QmYUA3THPRhQcdmSzgJUTYMa98hvYWtD9i9vUG8ZcNeQeo",
+  "total_volume": 2745353000000,
+  "first_sale": 1.7976931348623157e308,
+  "total_tx": 33,
+  "total_assets_sold": 32,
+  "asset_minted": 1000,
+  "asset_holders": 515,
+  "highest_sale": {
+    "asset_name": "EarthNode835",
+    "name": "b97859c71e4e73af3ae83c30a3172c434c43041f6ff19c297fb76094.EarthNode835",
+    "price": 135000000000
+  },
+  "floor_price": 78500000000,
+  "floor_price_marketplace": "jpg.store"
+}
