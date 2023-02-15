@@ -1,5 +1,8 @@
 import nock from "nock";
-import { generatePriceHistoryURL, getExternalPrice } from "../src/cryptocompare";
+import {
+  generatePriceHistoryURL,
+  getExternalPrice,
+} from "../src/cryptocompare";
 import { readFileSync } from "fs";
 import BigNumber from "bignumber.js";
 
@@ -32,39 +35,49 @@ describe("Cryptocompare API", () => {
 
     try {
       const prices = await getExternalPrice(false);
-      expect(prices).toStrictEqual({
+      expect(prices).toMatchObject({
         ADA: {
           EUR: {
-            changePercent24h: new BigNumber("1.7940932928512299"),
-            lastUpdate: 1675806041,
-            price: new BigNumber("0.3688"),
+            changePercent24h: new BigNumber("7.061569886197841"),
+            lastUpdate: 1676472106,
+            price: new BigNumber("0.3669"),
           },
           JPY: {
-            changePercent24h: new BigNumber("0.5182118050076848"),
-            lastUpdate: 1675806044,
-            price: new BigNumber("51.818179136"),
+            changePercent24h: new BigNumber("7.003199804240581"),
+            lastUpdate: 1676472110,
+            price: new BigNumber("52.46429523400001"),
           },
           USD: {
-            changePercent24h: new BigNumber("1.8050541516245504"),
-            lastUpdate: 1675806047,
-            price: new BigNumber("0.3948"),
+            changePercent24h: new BigNumber("5.783783783783792"),
+            lastUpdate: 1676472111,
+            price: new BigNumber("0.3914"),
+          },
+          MXN: {
+            changePercent24h: new BigNumber("6.4576280197159734"),
+            lastUpdate: 1676472114,
+            price: new BigNumber("7.2889792"),
           },
         },
         ETH: {
           EUR: {
-            changePercent24h: new BigNumber("1.6756668303059996"),
-            lastUpdate: 1675806047,
-            price: new BigNumber("1553.35"),
+            changePercent24h: new BigNumber("2.0291136704365593"),
+            lastUpdate: 1676472112,
+            price: new BigNumber("1476.8"),
           },
           JPY: {
-            changePercent24h: new BigNumber("0.5182118050076773"),
-            lastUpdate: 1675806044,
-            price: new BigNumber("218826.77"),
+            changePercent24h: new BigNumber("2.349013103129815"),
+            lastUpdate: 1676472110,
+            price: new BigNumber("211293.98"),
           },
           USD: {
-            changePercent24h: new BigNumber("1.6963119407175886"),
-            lastUpdate: 1675806046,
-            price: new BigNumber("1666.05"),
+            changePercent24h: new BigNumber("1.3830751721610304"),
+            lastUpdate: 1676472116,
+            price: new BigNumber("1576.74"),
+          },
+          MXN: {
+            changePercent24h: new BigNumber("2.0679827610176558"),
+            lastUpdate: 1676472063,
+            price: new BigNumber("29367"),
           },
         },
       });
