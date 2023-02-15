@@ -209,15 +209,18 @@ const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
 
     let results = [];
 
-    if(search){
+    if (search) {
       results = currentAdaPools.filter((pool) => {
-        return pool.name.toLowerCase().includes(search.toLowerCase()) || pool.pool_id.toLowerCase().includes(search.toLowerCase());
+        return (
+          pool.name.toLowerCase().includes(search.toLowerCase()) ||
+          pool.pool_id.toLowerCase().includes(search.toLowerCase())
+        );
       });
     } else {
       results = currentAdaPools;
     }
 
-    const numberOfPages = Math.ceil(results.length / limit)
+    const numberOfPages = Math.ceil(results.length / limit);
     if (page > numberOfPages) {
       res.status(400).send({
         status: "Page number is too high. Please choose a lower page number.",
