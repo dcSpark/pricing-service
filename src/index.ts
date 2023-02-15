@@ -210,10 +210,11 @@ const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
     let results = [];
 
     if (search) {
+      const searchEncoded = encodeURIComponent(search.toLowerCase());
       results = currentAdaPools.filter((pool) => {
         return (
-          pool.name.toLowerCase().includes(search.toLowerCase()) ||
-          pool.pool_id.toLowerCase().includes(search.toLowerCase())
+          encodeURIComponent(pool.name.toLowerCase()).includes(searchEncoded) ||
+          encodeURIComponent(pool.pool_id.toLowerCase()).includes(searchEncoded)
         );
       });
     } else {
