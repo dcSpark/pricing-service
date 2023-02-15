@@ -85,4 +85,10 @@ export class axios {
     console.log(`GET(${result.status}): ${url}`);
     return result;
   }
+
+  static async post(url: string, data: any, config?: AxiosRequestConfig) {
+    const result = await axiosRaw.post(url, data, config);
+    console.log(`POST(${result.status}): ${url}`);
+    return result;
+  }
 }

@@ -55,7 +55,7 @@ const initEmptyHistory = (): PriceHistory =>
 
 // Server cache
 let currentPrice: CurrentPrice | undefined;
-let currentAdaPools: { [key: string]: ADAPool } = {};
+let currentAdaPools: ADAPool[] = [];
 let currentCNFTsPrice: { [key: string]: CachedCollection } = {};
 let lastOpenCNFTRequested: number = 0; // used for pagination and avoid the rate limiter
 const historyDailyAll: PriceHistory = initEmptyHistory();
@@ -84,29 +84,13 @@ const updatePrice = async (): Promise<void> => {
   }
 };
 
-// const updateAdaPools = async (): Promise<void> => {
-//   try {
-//     const updatedAdaPools = await getAdaPools();
-//     // currentAdaPools = adaPools;
-//     updatedAdaPools.forEach((adaPool) => {
-//       if (!collection.policies) return;
-//       // if data already exist in the cache, we don't update it
-//       const data =
-//         currentCNFTsPrice[collection.policies] &&
-//         currentCNFTsPrice[collection.policies].data != null
-//           ? currentCNFTsPrice[collection.policies].data
-//           : null;
-
-//       currentCNFTsPrice[collection.policies] = {
-//         ...collection,
-//         data,
-//         lastUpdatedTimestamp: Date.now(),
-//       };
-//     });
-//   } catch (e) {
-//     console.error("Error updating adapools: ", e);
-//   }
-// };
+const updateAdaPools = async (): Promise<void> => {
+  try {
+    currentAdaPools = await getAdaPools();
+  } catch (e) {
+    console.error("Error updating adapools: ", e);
+  }
+};
 
 const updateCollections = async (): Promise<void> => {
   try {
@@ -205,6 +189,49 @@ const updateHourly = () =>
     CONFIG.APIGenerated.refreshInterval
   );
 
+const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
+  // req.body needs to have the following format:
+  // {
+  // "limit": 10,
+  // "page": 1, // optional
+  // }
+  if (req.body == null) {
+    res.status(400).send('Did not specify "body"!. Need: limit (up to 20) and page (not necessarily required).');
+    return;
+  }
+  
+  try {
+    const limit = assertType<number | undefined>(req.body.limit) || 20;
+    const page = assertType<number | undefined>(req.body.page) || 1;
+
+    if (limit && limit > 20) {
+      res.status(400).send({
+        status: "Too many pools. Maximum 20.",
+        data: [],
+      });
+      return;
+    }
+
+    // TODO: pagination will be added by paul. For now, we just return the first 20 pools
+    const start = 0;
+    const end = limit;
+
+    const pools = currentAdaPools.slice(start, end);
+    res.send({
+      status: "success",
+      data: pools,
+      limit: limit,
+      page: page,
+    });
+  } catch (e) {
+    res.status(400).send({
+      status: "error",
+      message: (e as Error).message,
+    });
+    return;
+  }
+};
+
 const getNFTsPriceEndpoint = async (req: Request, res: Response) => {
   if (req.body == null) {
     res.status(400).send('Did not specify "body"!');
@@ -299,6 +326,11 @@ const getPriceEndpoint = async (req: Request, res: Response) => {
 const routes: Route[] = [
   { path: "/v1/getPrice", method: "post", handler: getPriceEndpoint },
   { path: "/v1/getNFTPrices", method: "post", handler: getNFTsPriceEndpoint },
+  {
+    path: "/v1/getCardanoPools",
+    method: "post",
+    handler: getCardanoPoolsEndpoint,
+  },
 ];
 
 applyRoutes(routes, router);
@@ -324,11 +356,16 @@ console.log("Starting interval");
 
 new Promise(async (resolve) => {
   await updatePrice();
+  await updateAdaPools();
   await updateCollections();
 
   setInterval(async () => {
     await updatePrice();
   }, CONFIG.APIGenerated.refreshInterval);
+
+  setInterval(async () => {
+    await updateAdaPools();
+  }, CONFIG.APIGenerated.refreshAdaPools);
 
   setInterval(async () => {
     await updateCollections();

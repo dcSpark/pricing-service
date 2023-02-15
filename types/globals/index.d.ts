@@ -10,6 +10,7 @@ interface ConfigType {
   APIGenerated: {
     refreshBackoffCap: number,
     refreshInterval: number,
+    refreshAdaPools: number,
     openCNFTRatePerRequest: number, // 60
     openCNFTRefreshRate: number,
     collectionUpdateInterval: number,

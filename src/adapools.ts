@@ -1,7 +1,5 @@
 import CONFIG from "../config/default";
-// do not use directly, use `axios`
-import axiosRaw from "axios";
-import { axios } from "./utils/index";
+import fetch from "node-fetch";
 import { assertType } from "typescript-is";
 import { ADAPool, ADAPoolResponse } from "./types/types";
 
@@ -11,9 +9,7 @@ export const generateAdaPoolsURL = (): string => {
   return getPriceMultiFull;
 };
 
-export const parseAdaPoolsResponse = (
-  resp: any
-): ADAPool[] => {
+export const parseAdaPoolsResponse = (resp: any): ADAPool[] => {
   try {
     const respValidated = assertType<ADAPoolResponse>(resp);
     return Object.values(respValidated.data);
@@ -22,18 +18,24 @@ export const parseAdaPoolsResponse = (
   }
 };
 
-export const getAdaPools = (
-  logging = true
-): Promise<ADAPool[]> => {
-  const axiosConfig = {
+export const getAdaPools = (logging = true): Promise<ADAPool[]> => {
+  const requestConfig = {
     headers: {
+      Accept: "text/json",
+      "Content-Type": "application/json",
       "x-network": "mainnet",
       "x-api-key": CONFIG.adaPoolsAPI.key,
     },
   };
   const getAdaPools = generateAdaPoolsURL();
-  const fetcher = logging ? axios.get : axiosRaw.get;
-  return fetcher(getAdaPools, axiosConfig).then((resp) => {
+  // Axios with adaPools wasn't working for some reason so I switched to node-fetch
+  return fetch(getAdaPools, {
+    method: "POST",
+    ...requestConfig,
+  }).then(async (resp) => {
+    if (logging) {
+      console.log(`POST(${resp.status}): ${getAdaPools}`);
+    }
     if (resp.status === 404) {
       throw "AdaPools API not found";
     }
@@ -43,6 +45,7 @@ export const getAdaPools = (
     if (resp.status !== 200) {
       throw "AdaPools API error";
     }
-    return parseAdaPoolsResponse(resp.data);
+    const data = await resp.json();
+    return parseAdaPoolsResponse(data);
   });
 };

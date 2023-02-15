@@ -80,7 +80,7 @@ export interface ADAPool {
   name: string;
   stake: string;
   pool_id_hash: string;
-  tax_ratio: string;
+  tax_ratio: string | null;
   tax_fix: string;
   blocks_epoch: string;
   blocks_lifetime: string;
@@ -88,7 +88,7 @@ export interface ADAPool {
   roa_lifetime: string;
   pledge: string;
   delegators: string;
-  homepage: string;
+  homepage: string | null;
   saturation: number;
   img: string;
   url: string;
