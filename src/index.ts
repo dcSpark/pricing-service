@@ -236,7 +236,7 @@ const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
       limit: limit,
       page: page,
       numberOfPages,
-      hasNextPage: end < currentAdaPools.length,
+      hasNextPage: end < results.length,
     });
   } catch (e) {
     res.status(400).send({
