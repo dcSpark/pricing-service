@@ -190,16 +190,6 @@ const updateHourly = () =>
   );
 
 const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
-  // req.body needs to have the following format:
-  // {
-  // "limit": 10,
-  // "page": 1, // optional
-  // }
-  if (req.body == null) {
-    res.status(400).send('Did not specify "body"!. Need: limit (up to 20) and page (not necessarily required).');
-    return;
-  }
-  
   try {
     const limit = assertType<number | undefined>(req.body.limit) || 20;
     const page = assertType<number | undefined>(req.body.page) || 1;
