@@ -212,16 +212,27 @@ const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
       return;
     }
 
-    // TODO: pagination will be added by paul. For now, we just return the first 20 pools
-    const start = 0;
-    const end = limit;
+    const numberOfPages = Math.ceil(currentAdaPools.length / limit)
+    if (page > numberOfPages) {
+      res.status(400).send({
+        status: "Page number is too high. Please choose a lower page number.",
+        data: [],
+      });
+      return;
+    }
+
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
 
     const pools = currentAdaPools.slice(start, end);
-    res.send({
-      status: "success",
+    res.status(200).send({
+      status: "ok",
       data: pools,
       limit: limit,
       page: page,
+      numberOfPages,
+      hasNextPage: end < currentAdaPools.length,
     });
   } catch (e) {
     res.status(400).send({
