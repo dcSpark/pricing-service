@@ -67,6 +67,33 @@ export interface CNFT {
   floor_price_marketplace: string;
 }
 
+export interface ADAPoolResponse {
+  code: number;
+  time: string;
+  msg: string;
+  data: Record<string, ADAPool>;
+  terms: string;
+}
+
+export interface ADAPool {
+  pool_id: string;
+  name: string;
+  stake: string;
+  pool_id_hash: string;
+  tax_ratio: string | null;
+  tax_fix: string;
+  blocks_epoch: string;
+  blocks_lifetime: string;
+  roa_short: string;
+  roa_lifetime: string;
+  pledge: string;
+  delegators: string;
+  homepage: string | null;
+  saturation: number;
+  img: string;
+  url: string;
+}
+
 export interface NFTCollection {
   id: number;
   name: string | null;

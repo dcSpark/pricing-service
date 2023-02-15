@@ -22,6 +22,7 @@ import {
   PriceHistoryCryptoCompareEntry,
   CachedCollection,
   CNFT,
+  ADAPool,
 } from "./types/types";
 import CONFIG from "../config/default";
 import {
@@ -37,6 +38,7 @@ import {
   getCollections,
   getCollectionsUsingOpenCNFTInterval,
 } from "./opencnft";
+import { getAdaPools } from "./adapools";
 
 const dailyHistoryLimit = 2000; // defined by CryptoCompare
 const hourlyHistoryLimit = moment.duration(1, "week").asHours();
@@ -53,9 +55,9 @@ const initEmptyHistory = (): PriceHistory =>
 
 // Server cache
 let currentPrice: CurrentPrice | undefined;
+let currentAdaPools: ADAPool[] = [];
 let currentCNFTsPrice: { [key: string]: CachedCollection } = {};
 let lastOpenCNFTRequested: number = 0; // used for pagination and avoid the rate limiter
-let CNFTPolicyNotFoundList: string[] = [];
 const historyDailyAll: PriceHistory = initEmptyHistory();
 const historyHourlyWeek: PriceHistory = initEmptyHistory();
 
@@ -79,6 +81,14 @@ const updatePrice = async (): Promise<void> => {
     currentPrice = price;
   } catch (e) {
     console.error("Error updating price: ", e);
+  }
+};
+
+const updateAdaPools = async (): Promise<void> => {
+  try {
+    currentAdaPools = await getAdaPools();
+  } catch (e) {
+    console.error("Error updating adapools: ", e);
   }
 };
 
@@ -179,6 +189,50 @@ const updateHourly = () =>
     CONFIG.APIGenerated.refreshInterval
   );
 
+const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
+  try {
+    const limit = assertType<number | undefined>(req.body.limit) || 20;
+    const page = assertType<number | undefined>(req.body.page) || 1;
+
+    if (limit && limit > 20) {
+      res.status(400).send({
+        status: "Too many pools. Maximum 20.",
+        data: [],
+      });
+      return;
+    }
+
+    const numberOfPages = Math.ceil(currentAdaPools.length / limit)
+    if (page > numberOfPages) {
+      res.status(400).send({
+        status: "Page number is too high. Please choose a lower page number.",
+        data: [],
+      });
+      return;
+    }
+
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+
+    const pools = currentAdaPools.slice(start, end);
+    res.status(200).send({
+      status: "ok",
+      data: pools,
+      limit: limit,
+      page: page,
+      numberOfPages,
+      hasNextPage: end < currentAdaPools.length,
+    });
+  } catch (e) {
+    res.status(400).send({
+      status: "error",
+      message: (e as Error).message,
+    });
+    return;
+  }
+};
+
 const getNFTsPriceEndpoint = async (req: Request, res: Response) => {
   if (req.body == null) {
     res.status(400).send('Did not specify "body"!');
@@ -273,6 +327,11 @@ const getPriceEndpoint = async (req: Request, res: Response) => {
 const routes: Route[] = [
   { path: "/v1/getPrice", method: "post", handler: getPriceEndpoint },
   { path: "/v1/getNFTPrices", method: "post", handler: getNFTsPriceEndpoint },
+  {
+    path: "/v1/getCardanoPools",
+    method: "post",
+    handler: getCardanoPoolsEndpoint,
+  },
 ];
 
 applyRoutes(routes, router);
@@ -298,11 +357,16 @@ console.log("Starting interval");
 
 new Promise(async (resolve) => {
   await updatePrice();
+  await updateAdaPools();
   await updateCollections();
 
   setInterval(async () => {
     await updatePrice();
   }, CONFIG.APIGenerated.refreshInterval);
+
+  setInterval(async () => {
+    await updateAdaPools();
+  }, CONFIG.APIGenerated.refreshAdaPools);
 
   setInterval(async () => {
     await updateCollections();
