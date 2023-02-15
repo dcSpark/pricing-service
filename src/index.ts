@@ -190,9 +190,11 @@ const updateHourly = () =>
   );
 
 const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
+
   try {
-    const limit = assertType<number | undefined>(req.body.limit) || 20;
-    const page = assertType<number | undefined>(req.body.page) || 1;
+    const limit = assertType<number | undefined>(Number(req.query.limit)) || 20;
+    const page = assertType<number | undefined>(Number(req.query.page)) || 1;
+    const search = assertType<string | undefined>(req.query.search);
 
     if (limit && limit > 20) {
       res.status(400).send({
@@ -202,7 +204,23 @@ const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
       return;
     }
 
-    const numberOfPages = Math.ceil(currentAdaPools.length / limit)
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+    let results = [];
+
+    if (search) {
+      results = currentAdaPools.filter((pool) => {
+        return (
+          pool.name.toLowerCase().includes(search.toLowerCase()) ||
+          pool.pool_id.toLowerCase().includes(search.toLowerCase())
+        );
+      });
+    } else {
+      results = currentAdaPools;
+    }
+
+    const numberOfPages = Math.ceil(results.length / limit);
     if (page > numberOfPages) {
       res.status(400).send({
         status: "Page number is too high. Please choose a lower page number.",
@@ -210,12 +228,7 @@ const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
       });
       return;
     }
-
-    const start = (page - 1) * limit;
-    const end = start + limit;
-
-
-    const pools = currentAdaPools.slice(start, end);
+    const pools = results.slice(start, end);
     res.status(200).send({
       status: "ok",
       data: pools,
@@ -329,7 +342,7 @@ const routes: Route[] = [
   { path: "/v1/getNFTPrices", method: "post", handler: getNFTsPriceEndpoint },
   {
     path: "/v1/getCardanoPools",
-    method: "post",
+    method: "get",
     handler: getCardanoPoolsEndpoint,
   },
 ];
