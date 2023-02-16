@@ -221,14 +221,7 @@ const getCardanoPoolsEndpoint = async (req: Request, res: Response) => {
       results = currentAdaPools;
     }
 
-    const numberOfPages = Math.ceil(results.length / limit);
-    if (page > numberOfPages) {
-      res.status(400).send({
-        status: "Page number is too high. Please choose a lower page number.",
-        data: [],
-      });
-      return;
-    }
+    const numberOfPages = results.length <= limit ? 1 : Math.ceil(results.length / limit);
     const pools = results.slice(start, end);
     res.status(200).send({
       status: "ok",
