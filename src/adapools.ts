@@ -23,7 +23,7 @@ export const getAdaPools = (logging = true): Promise<ADAPool[]> => {
     headers: {
       Accept: "text/json",
       "Content-Type": "application/json",
-      "x-network": "mainnet",
+      "x-network": CONFIG.adaPoolsAPI.network,
       "x-api-key": CONFIG.adaPoolsAPI.key,
     },
   };

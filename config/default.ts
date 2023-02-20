@@ -10,6 +10,7 @@ export default {
   adaPoolsAPI: {
     url: process.env.ADAPOOLS_URL ?? "https://api.cexplorer.io",
     key: process.env.ADAPOOLS_KEY ?? "",
+    network: process.env.ADAPOOLS_NETWORK ?? "mainnet",
   },
   APIGenerated: {
     refreshBackoffCap: process.env.REFRESH_BACKOFF_CAP ?? 60000 * 60 * 3,

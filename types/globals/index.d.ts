@@ -6,6 +6,7 @@ interface ConfigType {
   adaPoolsAPI: {
     url: string,
     key: string,
+    network: 'mainnet' | 'preprod',
   },
   APIGenerated: {
     refreshBackoffCap: number,
