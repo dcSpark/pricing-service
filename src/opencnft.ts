@@ -74,13 +74,17 @@ export const getCollectionsUsingOpenCNFTInterval = async (
   const keys = Object.keys(currentCNFTsPrice);
   // get the keys of the currentCNFTsPrice that are in the range of start and start + limit
   const keysInRange = keys.slice(start, start + limit);
-  for (const keys of keysInRange) {
+  for (const key of keysInRange) {
     try {
-      const collection = await getCNFT(keys);
+      const collection = await getCNFT(key);
       if (!collection.policy) continue;
       result[collection.policy] = {
         ...currentCNFTsPrice[collection.policy],
-        data: collection,
+        data: {
+          ...collection,
+          holders: collection.holders ?? 0, // Assign 0 if holders is not set
+          floor_price: collection.floor_price ?? 0, // Assign 0 if floor_price is not set
+        },
         lastUpdatedTimestamp: Date.now(),
       };
     } catch (e) {
@@ -89,3 +93,4 @@ export const getCollectionsUsingOpenCNFTInterval = async (
   }
   return result;
 };
+

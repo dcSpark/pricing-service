@@ -68,7 +68,7 @@ export type PriceHistoryEntry = {
 export interface CNFT {
   // attribution: string;
   policy: string;
-  thumbnail: string;
+  thumbnail?: string | string [];
   total_volume: number;
   // first_sale: number;
   total_tx: number;
