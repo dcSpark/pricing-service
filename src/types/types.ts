@@ -66,19 +66,20 @@ export type PriceHistoryEntry = {
 };
 
 export interface CNFT {
-  attribution: string;
+  // attribution: string;
   policy: string;
   thumbnail: string;
   total_volume: number;
-  first_sale: number;
+  // first_sale: number;
   total_tx: number;
-  total_assets_sold: number;
-  asset_minted: number;
-  asset_holders: number;
+  total_nfts_sold: number;
+  minted: number;
+  holders: number;
   highest_sale: {
     price: number;
     asset_name: string;
     name: string;
+    fingerprint: string;
   };
   floor_price: number;
   floor_price_marketplace: string;

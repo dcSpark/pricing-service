@@ -3,6 +3,7 @@ import axiosRaw from "axios";
 import { axios } from "./utils/index";
 import { assertType } from "typescript-is";
 import { CachedCollection, CNFT, NFTCollection } from "./types/types";
+import CONFIG from "../config/default";
 
 export const parseCNFTPredatorResponse = (data: any): NFTCollection[] => {
   try {
@@ -43,15 +44,19 @@ export const parseCNFTResponse = (resp: unknown): CNFT => {
 };
 
 export const getCNFTURL = (policy: string): string => {
-  return `https://api.opencnft.io/1/policy/${policy}`;
+  return `https://api.opencnft.io/2/collection/${policy}`;
 };
 
 export const getCNFT = async (
   policy: string,
   logging = true
 ): Promise<CNFT> => {
+  const requestConfig = {
+    headers: { "X-Api-Key": CONFIG.APIGenerated.openCNFTkey },
+  };
+  const cnftURL = getCNFTURL(policy);
   const fetcher = logging ? axios.get : axiosRaw.get;
-  return fetcher(getCNFTURL(policy)).then((resp) => {
+  return fetcher(cnftURL, { ...requestConfig }).then((resp) => {
     if (resp.status === 404) {
       throw new Error("Not found");
     }

@@ -12,6 +12,7 @@ interface ConfigType {
     refreshBackoffCap: number,
     refreshInterval: number,
     refreshAdaPools: number,
+    openCNFTkey: string,
     openCNFTRatePerRequest: number, // 60
     openCNFTRefreshRate: number,
     collectionUpdateInterval: number,
