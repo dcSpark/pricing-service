@@ -84,6 +84,7 @@ export const getCollectionsUsingOpenCNFTInterval = async (
           ...collection,
           holders: collection.holders ?? 0, // Assign 0 if holders is not set
           floor_price: collection.floor_price ?? 0, // Assign 0 if floor_price is not set
+          thumbnail: collection.thumbnail ?? "", // Assign "" if thumbnail is not set
         },
         lastUpdatedTimestamp: Date.now(),
       };
