@@ -366,6 +366,7 @@ new Promise(async (resolve) => {
   await updatePrice();
   await updateAdaPools();
   await updateCollections();
+  updateCollectionsUsingOpenCNFTInterval(0,CONFIG.APIGenerated.openCNFTRatePerRequest);
 
   setInterval(async () => {
     await updatePrice();

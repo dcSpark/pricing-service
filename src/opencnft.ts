@@ -3,6 +3,7 @@ import axiosRaw from "axios";
 import { axios } from "./utils/index";
 import { assertType } from "typescript-is";
 import { CachedCollection, CNFT, NFTCollection } from "./types/types";
+import CONFIG from "../config/default";
 
 export const parseCNFTPredatorResponse = (data: any): NFTCollection[] => {
   try {
@@ -43,15 +44,19 @@ export const parseCNFTResponse = (resp: unknown): CNFT => {
 };
 
 export const getCNFTURL = (policy: string): string => {
-  return `https://api.opencnft.io/1/policy/${policy}`;
+  return `https://api.opencnft.io/2/collection/${policy}`;
 };
 
 export const getCNFT = async (
   policy: string,
   logging = true
 ): Promise<CNFT> => {
+  const requestConfig = {
+    headers: { "X-Api-Key": CONFIG.APIGenerated.openCNFTkey },
+  };
+  const cnftURL = getCNFTURL(policy);
   const fetcher = logging ? axios.get : axiosRaw.get;
-  return fetcher(getCNFTURL(policy)).then((resp) => {
+  return fetcher(cnftURL, { ...requestConfig }).then((resp) => {
     if (resp.status === 404) {
       throw new Error("Not found");
     }
@@ -69,13 +74,18 @@ export const getCollectionsUsingOpenCNFTInterval = async (
   const keys = Object.keys(currentCNFTsPrice);
   // get the keys of the currentCNFTsPrice that are in the range of start and start + limit
   const keysInRange = keys.slice(start, start + limit);
-  for (const keys of keysInRange) {
+  for (const key of keysInRange) {
     try {
-      const collection = await getCNFT(keys);
+      const collection = await getCNFT(key);
       if (!collection.policy) continue;
       result[collection.policy] = {
         ...currentCNFTsPrice[collection.policy],
-        data: collection,
+        data: {
+          ...collection,
+          holders: collection.holders ?? 0, // Assign 0 if holders is not set
+          floor_price: collection.floor_price ?? 0, // Assign 0 if floor_price is not set
+          thumbnail: collection.thumbnail ?? "", // Assign "" if thumbnail is not set
+        },
         lastUpdatedTimestamp: Date.now(),
       };
     } catch (e) {
@@ -84,3 +94,4 @@ export const getCollectionsUsingOpenCNFTInterval = async (
   }
   return result;
 };
+
