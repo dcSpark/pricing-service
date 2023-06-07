@@ -96,15 +96,15 @@ const updateCollections = async (): Promise<void> => {
   try {
     const collections = await getCollections();
     collections.forEach((collection) => {
-      if (!collection.policies) return;
+      if (!collection.policy_id) return;
       // if data already exist in the cache, we don't update it
       const data =
-        currentCNFTsPrice[collection.policies] &&
-        currentCNFTsPrice[collection.policies].data != null
-          ? currentCNFTsPrice[collection.policies].data
+        currentCNFTsPrice[collection.policy_id] &&
+        currentCNFTsPrice[collection.policy_id].data != null
+          ? currentCNFTsPrice[collection.policy_id].data
           : null;
 
-      currentCNFTsPrice[collection.policies] = {
+      currentCNFTsPrice[collection.policy_id] = {
         ...collection,
         data,
         lastUpdatedTimestamp: Date.now(),
@@ -269,7 +269,7 @@ const getNFTsPriceEndpoint = async (req: Request, res: Response) => {
 
   const result = Object.keys(currentCNFTsPrice).map((key) => {
     const cachedNft = currentCNFTsPrice[key];
-    if (cachedNft.policies != null && nfts.includes(cachedNft.policies)) {
+    if (cachedNft.policy_id != null && nfts.includes(cachedNft.policy_id)) {
       return cachedNft;
     } else {
       return null;

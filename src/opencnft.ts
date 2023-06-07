@@ -7,10 +7,10 @@ import CONFIG from "../config/default";
 
 export const parseCNFTPredatorResponse = (data: any): NFTCollection[] => {
   try {
-    if (data["success"] == null || data["success"] == false) {
-      console.log("failed to get collections");
-      throw new Error("Success is false");
-    }
+//    if (data["success"] == null || data["success"] == false) {
+//      console.log("failed to get collections");
+//      throw new Error("Success is false");
+//    }
     const respValidated = assertType<NFTCollection[]>(data);
     return respValidated;
   } catch (e) {
