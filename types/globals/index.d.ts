@@ -16,6 +16,7 @@ interface ConfigType {
     openCNFTRatePerRequest: number, // 60
     openCNFTRefreshRate: number,
     collectionUpdateInterval: number,
+    apiJnglkey: string,
     port: number
   },
 }

@@ -389,6 +389,7 @@ new Promise(async (resolve) => {
       lastOpenCNFTRequested,
       CONFIG.APIGenerated.openCNFTRatePerRequest
     ).then(() => {
+      console.log(`lastOpenCNFTRequested: ${lastOpenCNFTRequested} currentCNFTsPrice.length: ${Object.keys(currentCNFTsPrice).length}`);
       if (lastOpenCNFTRequested >= Object.keys(currentCNFTsPrice).length) {
         lastOpenCNFTRequested = 0;
       } else {

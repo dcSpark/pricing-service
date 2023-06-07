@@ -11,7 +11,7 @@ export const parseCNFTPredatorResponse = (data: any): NFTCollection[] => {
       console.log("failed to get collections");
       throw new Error("Success is false");
     }
-    const respValidated = assertType<NFTCollection[]>(data["collections"]);
+    const respValidated = assertType<NFTCollection[]>(data);
     return respValidated;
   } catch (e) {
     throw "Error while parsing response " + e;
@@ -19,14 +19,17 @@ export const parseCNFTPredatorResponse = (data: any): NFTCollection[] => {
 };
 
 export const getCollectionsURL = (): string => {
-  return "https://cnft-predator.herokuapp.com/collections";
+  return "https://api.jngl.io/publicapi/v1/cardano/collections";
 };
 
 export const getCollections = async (
   logging = true
 ): Promise<NFTCollection[]> => {
+  const requestConfig = {
+    headers: { "X-Api-Key": CONFIG.APIGenerated.apiJnglkey },
+  };
   const fetcher = logging ? axios.get : axiosRaw.get;
-  return fetcher(getCollectionsURL()).then((resp) => {
+  return fetcher(getCollectionsURL(), { ...requestConfig}).then((resp) => {
     if (resp.status === 404) {
       throw new Error("Not found");
     }
