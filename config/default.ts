@@ -19,7 +19,7 @@ export default {
     openCNFTkey: process.env.OPENCNFT_KEY ?? "",
     openCNFTRatePerRequest: process.env.OPEN_CNFT_RATE_REQUEST ?? 20,
     openCNFTRefreshRate: process.env.OPEN_CNFT_REFRESH_RATE ?? (60000 * 1 + 5000), // refreshes every 1 min and 1 sec
-    collectionUpdateInterval: process.env.OPEN_CNFT_REFRESH_RATE ?? 60000 * 60 * 6, // refreshes every 6 hours
+    collectionUpdateInterval: process.JNGL_LIST_REFRESH_RATE ?? 60000 * 60 * 6, // refreshes every 6 hours
     apiJnglkey: process.env.JNGL_KEY ?? "",
     port: process.env.PORT ?? 8080,
   },
