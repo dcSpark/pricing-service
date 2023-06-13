@@ -68,21 +68,21 @@ export type PriceHistoryEntry = {
 export interface CNFT {
   // attribution: string;
   policy: string;
-  thumbnail?: string | string [];
+  thumbnail?: string | string [] | null;
   total_volume: number;
   // first_sale: number;
   total_tx: number;
   total_nfts_sold: number;
   minted: number;
-  holders: number;
+  holders: number | null;
   highest_sale: {
     price: number;
     asset_name: string;
     name: string;
     fingerprint: string;
-  };
-  floor_price: number;
-  floor_price_marketplace: string;
+  } | null;
+  floor_price: number | null;
+  floor_price_marketplace: string | null;
 }
 
 export interface ADAPoolResponse {
@@ -113,9 +113,13 @@ export interface ADAPool {
 }
 
 export interface NFTCollection {
-  id: number;
-  name: string | null;
-  policies: string | null; // no idea how this can be null but it can
+  display_name: string;
+  policy_id: string;
+  image: string;
+  is_verified: boolean;
+  description: string;
+  floor: number;
+  traitslist: string[] | null;
 }
 
 export interface CachedCollection extends NFTCollection {
